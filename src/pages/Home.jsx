@@ -6,7 +6,7 @@ export default function Home() {
     <div className="max-w-6xl mx-auto px-5 py-10">
       <section className="mb-12 border border-hair rounded-lg bg-panel bg-shutter px-8 py-12 text-center">
         <span className="font-mono text-xs tracking-[0.2em] text-signal uppercase">
-          Справочник окраски
+          Стайлинг-центр OSNOVA
         </span>
         <h1 className="font-display text-4xl sm:text-5xl tracking-wide text-ink mt-3">
           Стоковые цвета транспорта

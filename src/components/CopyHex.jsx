@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 
-export default function CopyHex({ hex }) {
+function HexRow({ hex }) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
@@ -34,5 +34,16 @@ export default function CopyHex({ hex }) {
         )}
       </span>
     </button>
+  );
+}
+
+export default function CopyHex({ hexes }) {
+  const list = Array.isArray(hexes) ? hexes : [hexes];
+  return (
+    <div className="flex flex-col gap-2">
+      {list.map((hex) => (
+        <HexRow key={hex} hex={hex} />
+      ))}
+    </div>
   );
 }

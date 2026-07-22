@@ -10,11 +10,11 @@ export default function Header() {
             <SprayCan size={18} strokeWidth={2} />
           </span>
           <span className="font-display text-xl tracking-wide text-ink">
-            МАЛЯР<span className="text-signal">КА</span>
+            OSNOVA
           </span>
         </Link>
         <span className="hidden sm:block font-body text-xs text-mute pl-3 border-l border-hair">
-          Каталог стоковой окраски транспорта
+          Стайлинг-центр · Каталог стоковой окраски транспорта
         </span>
       </div>
     </header>
