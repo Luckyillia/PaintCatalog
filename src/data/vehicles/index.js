@@ -3,11 +3,13 @@ import volkswagenJetta from "./legkovoy/volkswagen-jetta";
 
 
 // Sobytiya
+import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
 import porsche911RwbSlimer from "./sobytiya/porsche-911-993-rwb-slimer";
 
 export { categories, getCategory } from "../categories";
 
 export const vehicles = [
+  bmw850CsiKoenigSpecialsKs8,
   volkswagenJetta,
   porsche911RwbSlimer,
 ];
