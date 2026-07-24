@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ImageOff } from "lucide-react";
 
-export default function PhotoSlot({ src, alt = "", className = "", label }) {
+export default function PhotoSlot({ src, alt = "", className = "", label, priority = false }) {
   const [broken, setBroken] = useState(false);
   const showFallback = !src || broken;
 
@@ -14,6 +14,8 @@ export default function PhotoSlot({ src, alt = "", className = "", label }) {
           src={src}
           alt={alt}
           className="w-full h-full object-cover"
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
           onError={() => setBroken(true)}
         />
       )}

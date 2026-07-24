@@ -3,6 +3,7 @@ import volkswagenJetta from "./legkovoy/volkswagen-jetta";
 import vaz2108 from "./legkovoy/vaz-2108";
 import vaz21011 from "./legkovoy/vaz-21011";
 import bmwX6mF96 from "./legkovoy/bmw-x6m-f96";
+import bmwM3E46 from "./legkovoy/bmw-m3-e46";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
@@ -12,6 +13,7 @@ import vaz2108Buran from "./sobytiya/vaz-2108-buran";
 export { categories, getCategory } from "../categories";
 
 export const vehicles = [
+  bmwM3E46,
   bmwX6mF96,
   vaz21011,
   vaz2108,
