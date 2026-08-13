@@ -9,15 +9,25 @@ import bmwX5E53 from "./legkovoy/bmw-x5-e53";
 import chevroletCaprice from "./legkovoy/chevrolet-caprice";
 import bmwM6F13 from "./legkovoy/bmw-m6-f13";
 import audiA4AllroadQuattro from "./legkovoy/audi-a4-allroad-quattro";
+import chevroletTahoeLtz from "./legkovoy/chevrolet-tahoe-ltz";
+import volkswagenPassatB3 from "./legkovoy/volkswagen-passat-b3";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
 import porsche911RwbSlimer from "./sobytiya/porsche-911-993-rwb-slimer";
 import vaz2108Buran from "./sobytiya/vaz-2108-buran";
 
+
+// Konteynery
+import porsche911993 from "./konteynery/porsche-911-993";
+
+
 export { categories, getCategory } from "../categories";
 
 export const vehicles = [
+  volkswagenPassatB3,
+  chevroletTahoeLtz,
+  porsche911993,
   audiA4AllroadQuattro,
   bmwM6F13,
   chevroletCaprice,
