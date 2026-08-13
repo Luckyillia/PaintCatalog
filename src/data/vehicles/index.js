@@ -7,6 +7,8 @@ import bmwM3E46 from "./legkovoy/bmw-m3-e46";
 import bmwM5F90 from "./legkovoy/bmw-m5-f90";
 import bmwX5E53 from "./legkovoy/bmw-x5-e53";
 import chevroletCaprice from "./legkovoy/chevrolet-caprice";
+import bmwM6F13 from "./legkovoy/bmw-m6-f13";
+import audiA4AllroadQuattro from "./legkovoy/audi-a4-allroad-quattro";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
@@ -16,6 +18,8 @@ import vaz2108Buran from "./sobytiya/vaz-2108-buran";
 export { categories, getCategory } from "../categories";
 
 export const vehicles = [
+  audiA4AllroadQuattro,
+  bmwM6F13,
   chevroletCaprice,
   bmwX5E53,
   bmwM5F90,
