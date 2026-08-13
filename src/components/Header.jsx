@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { SprayCan } from "lucide-react";
+import { SprayCan, Award } from "lucide-react";
 
 export default function Header() {
   return (
@@ -16,6 +16,13 @@ export default function Header() {
         <span className="hidden sm:block font-body text-xs text-mute pl-3 border-l border-hair">
           Стайлинг-центр · Каталог стоковой окраски транспорта
         </span>
+        <Link
+          to="/credits"
+          className="ml-auto flex items-center gap-1.5 font-body text-xs text-mute hover:text-signal transition-colors"
+        >
+          <Award size={14} />
+          <span className="hidden sm:inline">Стена почёта</span>
+        </Link>
       </div>
     </header>
   );

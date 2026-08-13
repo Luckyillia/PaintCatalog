@@ -12,7 +12,7 @@ export default function CategoryCard({ category }) {
     >
       <PhotoSlot
         src={category.image}
-        alt={category.name}
+        alt={category.name + ". Made by "+ category.alt}
         className="h-24"
         label="Фото категории"
       />
