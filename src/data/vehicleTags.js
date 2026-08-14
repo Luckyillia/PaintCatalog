@@ -56,6 +56,7 @@ export const vehicleTags = {
   "bmw-m5-e60": ["bmw", "sedan", "inomarka"],
   "nissan-400z": ["nissan", "coupe", "inomarka"],
   "nissan-200sx": ["nissan", "coupe", "inomarka", "aziatskiy", "era-90s", "era-80s", "rwd", "sport"],
+  "audi-rs6-c7": ["inomarka", "sport", "wagon", "audi", "evropeyskiy", "era-2010s", "awd"],
 
   // sobytiya
   "bmw-850-csi-koenig-specials-ks8": ["bmw", "coupe", "inomarka", "tuning"],
