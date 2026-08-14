@@ -49,7 +49,7 @@ export const vehicleTags = {
   "bmw-m6-f13": ["bmw", "coupe", "inomarka"],
   "audi-a4-allroad-quattro": ["audi", "wagon", "inomarka"],
   "chevrolet-tahoe-ltz": ["chevrolet", "suv", "inomarka"],
-  "volkswagen-passat-b3": ["volkswagen", "sedan", "inomarka"],
+  "volkswagen-passat-b3": ["volkswagen", "wagon", "inomarka"],
   "uaz-patriot": ["uaz", "suv", "otechestvenniy"],
   "jeep-grand-cherokee-zj": ["jeep", "suv", "inomarka"],
   "lada-largus": ["lada", "wagon", "otechestvenniy"],
