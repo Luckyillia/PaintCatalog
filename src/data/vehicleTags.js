@@ -55,6 +55,7 @@ export const vehicleTags = {
   "lada-largus": ["lada", "wagon", "otechestvenniy"],
   "bmw-m5-e60": ["bmw", "sedan", "inomarka"],
   "nissan-400z": ["nissan", "coupe", "inomarka"],
+  "nissan-200sx": ["nissan", "coupe", "inomarka", "aziatskiy", "era-90s", "era-80s", "rwd", "sport"],
 
   // sobytiya
   "bmw-850-csi-koenig-specials-ks8": ["bmw", "coupe", "inomarka", "tuning"],
