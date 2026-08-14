@@ -18,6 +18,7 @@ import bmwM5E60 from "./legkovoy/bmw-m5-e60";
 import nissan400z from "./legkovoy/nissan-400z";
 import nissan200sx from "./legkovoy/nissan-200sx";
 import audiRs6C7 from "./legkovoy/audi-rs6-c7";
+import mercedesSClassW220 from "./legkovoy/mercedes-s-class-w220";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
@@ -35,6 +36,7 @@ export { categories, getCategory } from "../categories";
 export { tags, tagGroups, getTag, getTagColor } from "../tags";
 
 const rawVehicles = [
+  mercedesSClassW220,
   audiRs6C7,
   nissan200sx,
   nissan400z,
