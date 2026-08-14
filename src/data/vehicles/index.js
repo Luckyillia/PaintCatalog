@@ -26,10 +26,12 @@ import vaz2108Buran from "./sobytiya/vaz-2108-buran";
 // Konteynery
 import porsche911993 from "./konteynery/porsche-911-993";
 
+import { vehicleTags } from "../vehicleTags";
 
 export { categories, getCategory } from "../categories";
+export { tags, tagGroups, getTag, getTagColor } from "../tags";
 
-export const vehicles = [
+const rawVehicles = [
   nissan400z,
   bmwM5E60,
   ladaLargus,
@@ -53,12 +55,33 @@ export const vehicles = [
   porsche911RwbSlimer,
 ];
 
+// Приклеиваем теги из vehicleTags.js к каждой машине по slug
+export const vehicles = rawVehicles.map((v) => ({
+  ...v,
+  tags: vehicleTags[v.slug] ?? [],
+}));
+
 export function getVehiclesByCategory(slug) {
   return vehicles.filter((v) => v.category === slug);
 }
 
 export function getVehicle(slug) {
   return vehicles.find((v) => v.slug === slug);
+}
+
+// Фильтрация списка машин по выбранным тегам (логика "ИЛИ" —
+// машина попадает в результат, если содержит хотя бы один из tagIds)
+export function getVehiclesByTags(list, tagIds) {
+  if (!tagIds || tagIds.length === 0) return list;
+  return list.filter((v) => v.tags?.some((t) => tagIds.includes(t)));
+}
+
+// Какие теги реально встречаются в данном списке машин
+// (чтобы не показывать в фильтре теги, которых тут нет)
+export function getUsedTagIds(list) {
+  const set = new Set();
+  list.forEach((v) => v.tags?.forEach((t) => set.add(t)));
+  return Array.from(set);
 }
 
 // Цвет может быть одинарным (hex) или двухцветным (hexes: [a, b])
