@@ -27,6 +27,7 @@ import vaz2108Buran from "./sobytiya/vaz-2108-buran";
 import porsche911993 from "./konteynery/porsche-911-993";
 
 import { vehicleTags } from "../vehicleTags";
+import { tags } from "../tags";
 
 export { categories, getCategory } from "../categories";
 export { tags, tagGroups, getTag, getTagColor } from "../tags";
@@ -77,11 +78,15 @@ export function getVehiclesByTags(list, tagIds) {
 }
 
 // Какие теги реально встречаются в данном списке машин
-// (чтобы не показывать в фильтре теги, которых тут нет)
+// (чтобы не показывать в фильтре теги, которых тут нет),
+// отсортированные в постоянном порядке — как они объявлены
+// в реестре src/data/tags.js (группа за группой).
 export function getUsedTagIds(list) {
   const set = new Set();
   list.forEach((v) => v.tags?.forEach((t) => set.add(t)));
-  return Array.from(set);
+
+  const order = new Map(tags.map((t, i) => [t.id, i]));
+  return Array.from(set).sort((a, b) => (order.get(a) ?? 999) - (order.get(b) ?? 999));
 }
 
 // Цвет может быть одинарным (hex) или двухцветным (hexes: [a, b])
