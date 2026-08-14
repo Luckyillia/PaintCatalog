@@ -63,7 +63,10 @@ export const vehicleTags = {
   "bmw-850-csi-koenig-specials-ks8": ["bmw", "coupe", "inomarka", "tuning"],
   "porsche-911-993-rwb-slimer": ["porsche", "coupe", "inomarka", "tuning"],
   "vaz-2108-buran": ["vaz", "hatchback", "otechestvenniy", "sovetskiy", "tuning"],
+  "dodge-charger-10-years": ["inomarka", "sedan", "rwd", "amerikanskiy", "era-2010s"],
 
   // konteynery
   "porsche-911-993": ["porsche", "coupe", "inomarka"],
+  "honda-nsx": ["inomarka", "rwd", "honda", "coupe", "aziatskiy", "era-90s"],
+  "ferrari-348-gtb": ["inomarka", "rwd", "coupe", "era-90s", "evropeyskiy", "sport"],
 };

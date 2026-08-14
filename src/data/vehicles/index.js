@@ -24,10 +24,12 @@ import mercedesSClassW220 from "./legkovoy/mercedes-s-class-w220";
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
 import porsche911RwbSlimer from "./sobytiya/porsche-911-993-rwb-slimer";
 import vaz2108Buran from "./sobytiya/vaz-2108-buran";
-
+import dodgeCharger10Years from "./sobytiya/dodge-charger-10-years";
 
 // Konteynery
+import hondaNsx from "./konteynery/honda-nsx";
 import porsche911993 from "./konteynery/porsche-911-993";
+import ferrari348Gtb from "./konteynery/ferrari-348-gtb";
 
 import { vehicleTags } from "../vehicleTags";
 import { tags } from "../tags";
@@ -36,6 +38,9 @@ export { categories, getCategory } from "../categories";
 export { tags, tagGroups, getTag, getTagColor } from "../tags";
 
 const rawVehicles = [
+  ferrari348Gtb,
+  dodgeCharger10Years,
+  hondaNsx,
   mercedesSClassW220,
   audiRs6C7,
   nissan200sx,
