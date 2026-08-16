@@ -2,6 +2,7 @@ export default {
   slug: "chevrolet-tahoe-ltz",
   category: "legkovoy",
   name: "Chevrolet Tahoe LTZ",
+  tags: ["inomarka", "suv", "awd", "era-2000s", "chevrolet", "amerikanskiy"],
   image: "/images/vehicles/legkovoy/chevrolet-tahoe-ltz/main.jpg",
   colors: [
     { id: "gold-mist-metallic", name: "Gold Mist Metallic", hexes: ["#6E674A", "#000000"], image: "/images/vehicles/legkovoy/chevrolet-tahoe-ltz/gold-mist-metallic.jpg" },

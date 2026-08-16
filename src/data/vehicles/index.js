@@ -25,6 +25,9 @@ import subaruForesterSg9 from "./legkovoy/subaru-forester-sg-9";
 import chevroletSuburban from "./legkovoy/chevrolet-suburban";
 import lexusLfa from "./legkovoy/lexus-lfa";
 import mercedesC200W206 from "./legkovoy/mercedes-c200-w206";
+import moskvich2140 from "./legkovoy/moskvich-2140";
+import zaz968 from "./legkovoy/zaz-968";
+import vaz1111Oka from "./legkovoy/vaz-1111-oka";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
@@ -39,13 +42,15 @@ import ferrari348Gtb from "./konteynery/ferrari-348-gtb";
 
 // Moto
 
-import { vehicleTags } from "../vehicleTags";
 import { tags } from "../tags";
 
 export { categories, getCategory } from "../categories";
 export { tags, tagGroups, getTag, getTagColor } from "../tags";
 
-const rawVehicles = [
+// Теги каждой машины теперь живут прямо в её файле (поле `tags`),
+// отдельный src/data/vehicleTags.js больше не используется —
+// его можно удалить из проекта.
+export const vehicles = [
   mercedesC200W206,
   lexusLfa,
   chevroletSuburban,
@@ -79,14 +84,10 @@ const rawVehicles = [
   bmw850CsiKoenigSpecialsKs8,
   volkswagenJetta,
   porsche911RwbSlimer,
-  
+  moskvich2140,
+  zaz968,
+  vaz1111Oka,
 ];
-
-// Приклеиваем теги из vehicleTags.js к каждой машине по slug
-export const vehicles = rawVehicles.map((v) => ({
-  ...v,
-  tags: vehicleTags[v.slug] ?? [],
-}));
 
 export function getVehiclesByCategory(slug) {
   return vehicles.filter((v) => v.category === slug);

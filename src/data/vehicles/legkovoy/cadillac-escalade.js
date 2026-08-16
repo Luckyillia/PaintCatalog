@@ -2,6 +2,7 @@ export default {
   slug: "cadillac-escalade",
   category: "legkovoy",
   name: "Cadillac Escalade",
+  tags: ["cadillac", "inomarka", "suv", "awd", "amerikanskiy", "era-2010s"],
   image: "/images/vehicles/legkovoy/cadillac-escalade/main.jpg",
   colors: [
     { id: "red-passion-tintcoat", name: "Red Passion Tintcoat", hexes: ["#300808", "#0B0000"], image: "/images/vehicles/legkovoy/cadillac-escalade/red-passion-tintcoat.jpg" },

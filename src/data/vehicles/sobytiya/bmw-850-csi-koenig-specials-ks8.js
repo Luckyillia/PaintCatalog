@@ -2,6 +2,7 @@ export default {
   slug: "bmw-850-csi-koenig-specials-ks8",
   category: "sobytiya",
   name: "BMW 850 CSI Koenig Specials KS8",
+  tags: ["bmw", "coupe", "inomarka", "tuning"],
   image: "/images/vehicles/sobytiya/bmw-850-csi-koenig-specials-ks8/main.jpg",
   colors: [
     { id: "lila-metalic-zakon-i-poryadok", name: "Lila Metalic \"Закон и порядок\"", hexes: ["#4E1E3D", "#130410"], image: "/images/vehicles/sobytiya/bmw-850-csi-koenig-specials-ks8/lila-metalic-zakon-i-poryadok.jpg" },

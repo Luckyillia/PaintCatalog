@@ -2,6 +2,7 @@ export default {
   slug: "bmw-m5-f90",
   category: "legkovoy",
   name: "BMW M5 (F90)",
+  tags: ["inomarka", "evropeyskiy", "nemetskiy", "bmw", "sedan", "era-2010s", "awd"],
   image: "/images/vehicles/legkovoy/bmw-m5-f90/main.jpg",
   colors: [
     { id: "snapper-rocks-blue-metallic", name: "Snapper Rocks Blue Metallic", hexes: ["#2D698B", "#000000"], image: "/images/vehicles/legkovoy/bmw-m5-f90/snapper-rocks-blue-metallic.jpg" },

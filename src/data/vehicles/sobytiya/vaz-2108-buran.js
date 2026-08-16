@@ -2,6 +2,7 @@ export default {
   slug: "vaz-2108-buran",
   category: "sobytiya",
   name: "ВАЗ 2108 \"Буран\"",
+  tags: ["vaz", "hatchback", "otechestvenniy", "sovetskiy", "tuning"],
   image: "/images/vehicles/sobytiya/vaz-2108-buran/main.jpg",
   colors: [
     { id: "buranich-by-sokira", name: "Buranich by Sokira", hexes: ["#253C33", "#000000"], image: "/images/vehicles/sobytiya/vaz-2108-buran/buranich-by-sokira.jpg" },

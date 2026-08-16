@@ -2,6 +2,7 @@ export default {
   slug: "bmw-m5-e60",
   category: "legkovoy",
   name: "BMW M5 E60",
+  tags: ["inomarka", "evropeyskiy", "nemetskiy", "bmw", "sedan", "era-2000s", "rwd"],
   image: "/images/vehicles/legkovoy/bmw-m5-e60/main.jpg",
   colors: [
     { id: "sepang-bronze-metallic", name: "Sepang Bronze Metallic", hexes: ["#2E261F", "#17140F"], image: "/images/vehicles/legkovoy/bmw-m5-e60/sepang-bronze-metallic.jpg" },

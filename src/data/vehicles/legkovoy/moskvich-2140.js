@@ -2,6 +2,7 @@ export default {
   slug: "moskvich-2140",
   category: "legkovoy",
   name: "Москвич-2140",
+  tags: [],
   image: "",
   colors: [
     { id: "white", name: "Белый", hex: "#E6E8E9", image: "" },

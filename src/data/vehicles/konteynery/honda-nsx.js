@@ -2,6 +2,7 @@ export default {
   slug: "honda-nsx",
   category: "konteynery",
   name: "Honda NSX",
+  tags: ["inomarka", "rwd", "honda", "coupe", "aziatskiy", "era-90s"],
   image: "/images/vehicles/konteynery/honda-nsx/main.jpg",
   colors: [
     { id: "paul-ricard-blue", name: "Paul Ricard Blue", hexes: ["#0A3294", "#030C1A"], image: "/images/vehicles/konteynery/honda-nsx/paul-ricard-blue.jpg" },

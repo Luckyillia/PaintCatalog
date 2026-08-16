@@ -2,6 +2,7 @@ export default {
   slug: "chevrolet-suburban",
   category: "legkovoy",
   name: "Chevrolet Suburban",
+  tags: ["chevrolet", "suv", "inomarka", "amerikanskiy", "awd", "era-90s"],
   image: "/images/vehicles/legkovoy/chevrolet-suburban/main.jpg",
   colors: [
     { id: "dark-green-metallic", name: "Dark Green Metallic", hexes: ["#0A1B1C", "#000000"], image: "/images/vehicles/legkovoy/chevrolet-suburban/dark-green-metallic.jpg" },

@@ -2,6 +2,7 @@ export default {
   slug: "nissan-200sx",
   category: "legkovoy",
   name: "Nissan 200sx",
+  tags: ["nissan", "coupe", "inomarka", "aziatskiy", "era-90s", "era-80s", "rwd", "sport"],
   image: "/images/vehicles/legkovoy/nissan-200sx/main.jpg",
   colors: [
     { id: "variant-1", name: "Вариант 1", hexes: ["#5C6F6E", "#000000"], image: "/images/vehicles/legkovoy/nissan-200sx/variant-1.jpg" },

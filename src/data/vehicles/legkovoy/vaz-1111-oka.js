@@ -2,6 +2,7 @@ export default {
   slug: "vaz-1111-oka",
   category: "legkovoy",
   name: "ВАЗ-1111 Ока",
+  tags: [],
   image: "",
   colors: [
     { id: "white", name: "Белый", hex: "#E9EBEC", image: "" },

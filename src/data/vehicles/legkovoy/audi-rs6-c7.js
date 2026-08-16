@@ -2,6 +2,7 @@ export default {
   slug: "audi-rs6-c7",
   category: "legkovoy",
   name: "Audi RS6 (C7)",
+  tags: ["inomarka", "sport", "wagon", "audi", "evropeyskiy", "era-2010s", "awd"],
   image: "/images/vehicles/legkovoy/audi-rs6-c7/main.jpg",
   colors: [
     { id: "ascari-blue", name: "Ascari Blue", hexes: ["#05152C", "#000000"], image: "/images/vehicles/legkovoy/audi-rs6-c7/ascari-blue.jpg" },

@@ -2,6 +2,7 @@ export default {
   slug: "audi-a4-allroad-quattro",
   category: "legkovoy",
   name: "Audi A4 Allroad Quattro",
+  tags: ["audi", "wagon", "inomarka"],
   image: "/images/vehicles/legkovoy/audi-a4-allroad-quattro/main.jpg",
   colors: [
     { id: "dakar-beige", name: "Dakar Beige", hexes: ["#5A5745", "#000000"], image: "/images/vehicles/legkovoy/audi-a4-allroad-quattro/dakar-beige.jpg" },

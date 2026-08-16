@@ -2,6 +2,7 @@ export default {
   slug: "porsche-911-993-rwb-slimer",
   category: "sobytiya",
   name: "Porsche 911 Carrera (993) RWB Slimer",
+  tags: ["porsche", "coupe", "inomarka", "tuning"],
   image: "/images/vehicles/sobytiya/porsche-911-993-rwb-slimer/combo-1.png",
   colors: [
     { id: "combo-1", name: "Вариант 1", hexes: ["#4C6624", "#161006"], image: "/images/vehicles/sobytiya/porsche-911-993-rwb-slimer/combo-1.png" },

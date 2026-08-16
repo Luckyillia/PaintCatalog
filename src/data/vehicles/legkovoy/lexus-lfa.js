@@ -2,6 +2,7 @@ export default {
   slug: "lexus-lfa",
   category: "legkovoy",
   name: "Lexus LFA",
+  tags: ["lexus", "coupe", "inomarka", "aziatskiy", "era-2010s", "rwd", "sport"],
   image: "/images/vehicles/legkovoy/lexus-lfa/main.jpg",
   colors: [
     { id: "pearl-red", name: "Pearl Red", hexes: ["#5F0D0D", "#000000"], image: "/images/vehicles/legkovoy/lexus-lfa/pearl-red.jpg" },

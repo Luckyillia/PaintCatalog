@@ -2,6 +2,7 @@ export default {
   slug: "bmw-x5-e53",
   category: "legkovoy",
   name: "BMW X5 (E53)",
+  tags: ["inomarka", "evropeyskiy", "nemetskiy", "bmw", "suv", "era-2000s", "awd"],
   image: "/images/vehicles/legkovoy/bmw-x5-e53/main.jpg",
   colors: [
     { id: "variant-1", name: "Вариант 1", hexes: ["#200909", "#0E0908"], image: "/images/vehicles/legkovoy/bmw-x5-e53/variant-1.jpg" },

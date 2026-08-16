@@ -2,6 +2,7 @@ export default {
   slug: "bmw-m3-e46",
   category: "legkovoy",
   name: "BMW M3 (E46)",
+  tags: ["inomarka", "rwd", "evropeyskiy", "nemetskiy", "bmw", "coupe", "era-2000s"],
   image: "/images/vehicles/legkovoy/bmw-m3-e46/main.jpg",
   colors: [
     { id: "phoenix-yellow", name: "Phoenix Yellow", hexes: ["#837E20", "#100F04"], image: "/images/vehicles/legkovoy/bmw-m3-e46/phoenix-yellow.jpg" },

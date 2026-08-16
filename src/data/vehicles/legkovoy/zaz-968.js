@@ -2,6 +2,7 @@ export default {
   slug: "zaz-968",
   category: "legkovoy",
   name: 'ЗАЗ-968 «Запорожец»',
+  tags: [],
   image: "",
   colors: [
     { id: "white", name: "Белый жемчуг", hex: "#EDEFF1", image: "" },

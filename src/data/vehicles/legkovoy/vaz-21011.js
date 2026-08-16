@@ -2,6 +2,7 @@ export default {
   slug: "vaz-21011",
   category: "legkovoy",
   name: "ВАЗ 21011",
+  tags: ["vaz", "sedan", "otechestvenniy", "sovetskiy"],
   image: "/images/vehicles/legkovoy/vaz-21011/main.jpg",
   colors: [
     { id: "zelenaya-lipa-325", name: "Зеленая липа(325)", hexes: ["#4F7A2B", "#000000"], image: "/images/vehicles/legkovoy/vaz-21011/zelenaya-lipa-325.jpg" },

@@ -2,6 +2,7 @@ export default {
   slug: "audi-q7-2013",
   category: "legkovoy",
   name: "Audi Q7 2013",
+  tags: ["inomarka", "suv", "awd", "audi", "evropeyskiy", "era-2000s"],
   image: "/images/vehicles/legkovoy/audi-q7-2013/main.jpg",
   colors: [
     { id: "garnet-red-pearl", name: "Garnet Red Pearl", hexes: ["#440505", "#070000"], image: "/images/vehicles/legkovoy/audi-q7-2013/garnet-red-pearl.jpg" },

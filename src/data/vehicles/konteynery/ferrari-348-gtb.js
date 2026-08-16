@@ -2,6 +2,7 @@ export default {
   slug: "ferrari-348-gtb",
   category: "konteynery",
   name: "Ferrari 348 GTB",
+  tags: ["inomarka", "rwd", "coupe", "era-90s", "evropeyskiy", "sport"],
   image: "/images/vehicles/konteynery/ferrari-348-gtb/main.jpg",
   colors: [
     { id: "rosso-corsa", name: "Rosso Corsa", hexes: ["#A41212", "#100202"], image: "/images/vehicles/konteynery/ferrari-348-gtb/rosso-corsa.jpg" },

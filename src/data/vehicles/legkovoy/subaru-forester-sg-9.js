@@ -2,6 +2,7 @@ export default {
   slug: "subaru-forester-sg-9",
   category: "legkovoy",
   name: "Subaru Forester (SG 9)",
+  tags: ["inomarka", "aziatskiy", "suv", "era-2000s", "awd", "subaru"],
   image: "/images/vehicles/legkovoy/subaru-forester-sg-9/main.jpg",
   colors: [
     { id: "garnet-red-pearl", name: "Garnet Red Pearl", hexes: ["#670905", "#070201"], image: "/images/vehicles/legkovoy/subaru-forester-sg-9/garnet-red-pearl.jpg" },

@@ -2,6 +2,7 @@ export default {
   slug: "bmw-x6m-f96",
   category: "legkovoy",
   name: "BMW X6M (F96)",
+  tags: ["bmw", "suv", "inomarka"],
   image: "/images/vehicles/legkovoy/bmw-x6m-f96/main.jpg",
   colors: [
     { id: "variant-1", name: "Вариант 1", hexes: ["#6E1207", "#000000"], image: "/images/vehicles/legkovoy/bmw-x6m-f96/variant-1.jpg" },

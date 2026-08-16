@@ -2,6 +2,7 @@ export default {
   slug: "chevrolet-caprice",
   category: "legkovoy",
   name: "Chevrolet Caprice",
+  tags: ["chevrolet", "sedan", "inomarka"],
   image: "/images/vehicles/legkovoy/chevrolet-caprice/main.jpg",
   colors: [
     { id: "kapriz-sokiry", name: "Каприз Сокиры", hexes: ["#406083", "#08131C"], image: "/images/vehicles/legkovoy/chevrolet-caprice/kapriz-sokiry.jpg" },
