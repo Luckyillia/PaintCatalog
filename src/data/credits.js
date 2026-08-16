@@ -29,7 +29,7 @@ export const creditGroups = [
         avatar: "https://sun9-80.vkuserphoto.ru/s/v1/ig2/VtpYhk9a2Kyq4llK-hT2MxS5LVH7Byf70SwKWqqB94X7ZGERf8pJys2fqUbW-ctzDjinBz_BOsUp8p4UjraEMj1j.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720,1440x810,1920x1080&from=bu&u=1fM_6JblSbChlxv1eBT8diR4WqWcTUIRJdPa3nLxF3Y&cs=1920x0",
         link: "https://vk.ru/bentley.prod",
         providerId: "bentley-production",
-        vehicleSlugs: ["porsche-911-993"],
+        vehicleSlugs: ["porsche-911-993", "honda-nsx", "ferrari-348-gtb"],
       },
       {
         name: "Forward Auto Rent | Mta Province #6",
