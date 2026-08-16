@@ -1,4 +1,5 @@
-import { ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ExternalLink, ChevronRight } from "lucide-react";
 
 export default function CreditCard({ entry }) {
   const initials = entry.name
@@ -8,21 +9,22 @@ export default function CreditCard({ entry }) {
     .map((w) => w[0]?.toUpperCase())
     .join("");
 
+  const hasProviderPage = Boolean(entry.providerId);
   const hasLink = Boolean(entry.link);
-  const Wrapper = hasLink ? "a" : "div";
-  const wrapperProps = hasLink
-    ? {
-        href: entry.link,
-        target: "_blank",
-        rel: "noopener noreferrer",
-      }
+  const clickable = hasProviderPage || hasLink;
+
+  const Wrapper = hasProviderPage ? Link : hasLink ? "a" : "div";
+  const wrapperProps = hasProviderPage
+    ? { to: `/provider/${entry.providerId}` }
+    : hasLink
+    ? { href: entry.link, target: "_blank", rel: "noopener noreferrer" }
     : {};
 
   return (
     <Wrapper
       {...wrapperProps}
       className={`group relative rounded-lg border border-hair bg-panel p-5 flex items-center gap-4 overflow-hidden transition-colors ${
-        hasLink
+        clickable
           ? "hover:border-signal/50 cursor-pointer focus-visible:outline-2 focus-visible:outline-signal focus-visible:outline-offset-2"
           : ""
       }`}
@@ -58,13 +60,19 @@ export default function CreditCard({ entry }) {
         )}
       </div>
 
-      {hasLink && (
+      {hasProviderPage ? (
+        <ChevronRight
+          size={18}
+          strokeWidth={1.75}
+          className="text-mute group-hover:text-signal transition-colors shrink-0 relative z-10"
+        />
+      ) : hasLink ? (
         <ExternalLink
           size={16}
           strokeWidth={1.75}
           className="text-mute group-hover:text-signal transition-colors shrink-0 relative z-10"
         />
-      )}
+      ) : null}
     </Wrapper>
   );
 }

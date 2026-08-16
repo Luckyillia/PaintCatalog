@@ -1,6 +1,7 @@
+import { X } from "lucide-react";
 import { getTag, getTagColor } from "../data/vehicles";
 
-export default function TagChip({ tagId, active, onClick }) {
+export default function TagChip({ tagId, active, onClick, removable = false }) {
   const tag = getTag(tagId);
   if (!tag) return null;
   const color = getTagColor(tagId);
@@ -8,7 +9,7 @@ export default function TagChip({ tagId, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="shrink-0 font-mono text-[11px] uppercase tracking-wide px-3 py-1.5 rounded-full border transition-all duration-150 whitespace-nowrap focus-visible:outline-2 focus-visible:outline-signal focus-visible:outline-offset-2"
+      className="shrink-0 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide px-3 py-1.5 rounded-full border transition-all duration-150 whitespace-nowrap focus-visible:outline-2 focus-visible:outline-signal focus-visible:outline-offset-2"
       style={{
         borderColor: color,
         background: active ? color : "transparent",
@@ -20,6 +21,7 @@ export default function TagChip({ tagId, active, onClick }) {
       aria-pressed={active}
     >
       {tag.label}
+      {removable && active && <X size={11} strokeWidth={2.5} />}
     </button>
   );
 }

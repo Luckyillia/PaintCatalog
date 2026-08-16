@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import Category from "./pages/Category";
 import VehicleDetail from "./pages/VehicleDetail";
 import CreditsWall from "./pages/CreditsWall";
+import ProviderDetail from "./pages/ProviderDetail";
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/category/:slug" element={<Category />} />
         <Route path="/vehicle/:slug" element={<VehicleDetail />} />
         <Route path="/credits" element={<CreditsWall />} />
+        <Route path="/provider/:id" element={<ProviderDetail />} />
       </Routes>
     </div>
   );
