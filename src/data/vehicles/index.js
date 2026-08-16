@@ -21,7 +21,7 @@ import audiRs6C7 from "./legkovoy/audi-rs6-c7";
 import mercedesSClassW220 from "./legkovoy/mercedes-s-class-w220";
 import audiQ72013 from "./legkovoy/audi-q7-2013";
 import cadillacEscalade from "./legkovoy/cadillac-escalade";
-import subaruForedterSg9 from "./legkovoy/subaru-foredter-sg-9";
+import subaruForesterSg9 from "./legkovoy/subaru-forester-sg-9";
 import chevroletSuburban from "./legkovoy/chevrolet-suburban";
 import lexusLfa from "./legkovoy/lexus-lfa";
 
@@ -45,7 +45,7 @@ export { tags, tagGroups, getTag, getTagColor } from "../tags";
 const rawVehicles = [
   lexusLfa,
   chevroletSuburban,
-  subaruForedterSg9,
+  subaruForesterSg9,
   cadillacEscalade,
   audiQ72013,
   ferrari348Gtb,

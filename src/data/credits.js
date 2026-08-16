@@ -49,7 +49,7 @@ export const creditGroups = [
         providerId: "astvatsatur-aesthetic",
         // Mercedes E Class (w210) пока нет в каталоге — добавь slug сюда,
         // когда заведёшь для неё файл в src/data/vehicles/.
-        vehicleSlugs: ["chevrolet-tahoe-ltz"],
+        vehicleSlugs: ["chevrolet-tahoe-ltz", "audi-q7-2013", "cadillac-escalade", "lexus-lfa", "subaru-forester-sg-9"],
       },
     ],
   },
