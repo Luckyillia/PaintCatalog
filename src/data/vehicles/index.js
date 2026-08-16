@@ -36,6 +36,8 @@ import hondaNsx from "./konteynery/honda-nsx";
 import porsche911993 from "./konteynery/porsche-911-993";
 import ferrari348Gtb from "./konteynery/ferrari-348-gtb";
 
+// Moto
+
 import { vehicleTags } from "../vehicleTags";
 import { tags } from "../tags";
 
