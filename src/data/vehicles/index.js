@@ -25,6 +25,9 @@ import subaruForesterSg9 from "./legkovoy/subaru-forester-sg-9";
 import chevroletSuburban from "./legkovoy/chevrolet-suburban";
 import lexusLfa from "./legkovoy/lexus-lfa";
 import mercedesC200W206 from "./legkovoy/mercedes-c200-w206";
+import hummerH2 from "./legkovoy/hummer-h2";
+import volkswagenPolo from "./legkovoy/volkswagen-polo";
+import maseratiGranturismo from "./legkovoy/maserati-granturismo";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
@@ -48,6 +51,9 @@ export { tags, tagGroups, getTag, getTagColor } from "../tags";
 // отдельный src/data/vehicleTags.js больше не используется —
 // его можно удалить из проекта.
 export const vehicles = [
+  hummerH2,
+  volkswagenPolo,
+  maseratiGranturismo,
   mercedesC200W206,
   lexusLfa,
   chevroletSuburban,

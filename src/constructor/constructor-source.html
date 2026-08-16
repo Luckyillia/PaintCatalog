@@ -1089,6 +1089,7 @@
     const lines = [];
     lines.push("export default {");
     lines.push(`  slug: "${escapeJsString(data.slug)}",`);
+    lines.push(`  tags: [${data.tagIds.map((id) => `"${escapeJsString(id)}"`).join(", ")}]`)
     lines.push(`  category: "${escapeJsString(data.category)}",`);
     lines.push(`  name: "${escapeJsString(data.name)}",`);
     lines.push(`  image: "${escapeJsString(data.mainPath)}",`);
@@ -1158,7 +1159,7 @@
     const data = buildOutputData();
     jsPathPreview.textContent = `src/data/vehicles/${data.category}/${data.slug}.js`;
     codeOutput.value = generateCode(data);
-    tagsCodeOutput.value = generateTagsSnippet(data);
+    //tagsCodeOutput.value = generateTagsSnippet(data);
     renderInstructions(generateInstructions(data));
   }
 
@@ -1207,9 +1208,9 @@
 
     zip.file(`src/data/vehicles/${data.category}/${data.slug}.js`, generateCode(data));
 
-    if (data.tagIds.length > 0) {
-      zip.file("vehicleTags-snippet.txt", generateTagsSnippet(data));
-    }
+    // if (data.tagIds.length > 0) {
+    //   zip.file("vehicleTags-snippet.txt", generateTagsSnippet(data));
+    // }
 
     if (mainImage.blob) {
       zip.file(`public/images/vehicles/${data.category}/${data.slug}/main.jpg`, mainImage.blob);
