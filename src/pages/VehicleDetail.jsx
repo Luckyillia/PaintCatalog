@@ -5,6 +5,7 @@ import Breadcrumbs from "../components/Breadcrumbs";
 import ColorChip from "../components/ColorChip";
 import CopyHex from "../components/CopyHex";
 import PhotoSlot from "../components/PhotoSlot";
+import TagChip from "../components/TagChip";
 
 export default function VehicleDetail() {
   const { slug } = useParams();
@@ -39,9 +40,17 @@ export default function VehicleDetail() {
         ]}
       />
 
-      <h1 className="font-display text-3xl tracking-wide text-ink mb-6">
+      <h1 className="font-display text-3xl tracking-wide text-ink mb-3">
         {vehicle.name}
       </h1>
+
+      {vehicle.tags?.length > 0 && (
+        <div className="flex items-center gap-1.5 flex-wrap mb-6">
+          {vehicle.tags.map((tagId) => (
+            <TagChip key={tagId} tagId={tagId} />
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* левая колонка — выбранный цвет, hex и вся палитра */}

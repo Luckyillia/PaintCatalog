@@ -241,12 +241,12 @@
     <label>Код файла данных (можно скопировать и вставить вручную)</label>
     <textarea class="code-output" id="codeOutput" readonly spellcheck="false"></textarea>
 
-    <label style="margin-top: 16px;">Строка для <code style="background: var(--raised); border: 1px solid var(--hair); border-radius: 4px; padding: 1px 6px; font-family: 'JetBrains Mono', monospace; color: var(--signal);">src/data/vehicleTags.js</code> (теги машины)</label>
+    <label style="margin-top: 16px;">Список тегов машины (для справки/копирования — сами теги уже включены в код файла выше)</label>
     <textarea class="code-output" id="tagsCodeOutput" readonly spellcheck="false" style="min-height: 60px;"></textarea>
 
     <div class="row" style="margin-top: 14px;">
       <button type="button" id="copyCodeBtn" class="secondary">Скопировать код</button>
-      <button type="button" id="copyTagsBtn" class="secondary">Скопировать строку тегов</button>
+      <button type="button" id="copyTagsBtn" class="secondary">Скопировать список тегов</button>
       <button type="button" id="downloadJsBtn" class="secondary">Скачать .js файл</button>
       <button type="button" id="downloadZipBtn">Скачать всё пакетом (.zip)</button>
       <span class="status" id="status"></span>
@@ -257,7 +257,7 @@
       <span class="status" id="publishStatus"></span>
     </div>
     <p class="hint">
-      Фото уходят в Cloudinary, а описание машины (с этими же путями к фото) — в таблицу
+      Фото уходят в Cloudinary, а описание машины (с этими же путями к фото, включая теги) — в таблицу
       <code>pending_vehicles</code> в Supabase. Локально на компьютере запускаешь
       <code>node scripts/pull-vehicles.mjs</code> — он скачает фото, создаст файл машины
       и подскажет две строки для <code>index.js</code>.
@@ -440,6 +440,7 @@
     { id: "geely", label: "Geely", group: "brand" },
     { id: "haval", label: "Haval", group: "brand" },
     { id: "byd", label: "BYD", group: "brand" },
+    { id: "hummer", label: "Hummer", group: "brand" },
 
     // Кузов
     { id: "sedan", label: "Седан", group: "body" },
@@ -1085,13 +1086,15 @@
     return { category, slug, name, mainPath, colors, tagIds };
   }
 
+  // Порядок полей соответствует формату реальных файлов машин в
+  // src/data/vehicles/*/*.js: slug, category, name, tags, image, colors.
   function generateCode(data) {
     const lines = [];
     lines.push("export default {");
     lines.push(`  slug: "${escapeJsString(data.slug)}",`);
-    lines.push(`  tags: [${data.tagIds.map((id) => `"${escapeJsString(id)}"`).join(", ")}]`)
     lines.push(`  category: "${escapeJsString(data.category)}",`);
     lines.push(`  name: "${escapeJsString(data.name)}",`);
+    lines.push(`  tags: [${data.tagIds.map((id) => `"${escapeJsString(id)}"`).join(", ")}],`);
     lines.push(`  image: "${escapeJsString(data.mainPath)}",`);
     lines.push("  colors: [");
     data.colors.forEach((c) => {
@@ -1108,12 +1111,15 @@
     return lines.join("\n");
   }
 
+  // Просто список тегов машины для справки/копирования — отдельного
+  // файла src/data/vehicleTags.js больше не существует, теги уже
+  // включены прямо в код выше (см. generateCode).
   function generateTagsSnippet(data) {
     if (data.tagIds.length === 0) {
-      return "// Теги не выбраны — можно пропустить этот шаг\n// или добавить их позже вручную в vehicleTags.js";
+      return "// Теги не выбраны";
     }
     const idsStr = data.tagIds.map((id) => `"${escapeJsString(id)}"`).join(", ");
-    return `  "${escapeJsString(data.slug)}": [${idsStr}],`;
+    return `[${idsStr}]`;
   }
 
   function generateInstructions(data) {
@@ -1121,18 +1127,13 @@
     const jsPath = `src/data/vehicles/${data.category}/${data.slug}.js`;
     const imgFolder = `public/images/vehicles/${data.category}/${data.slug}/`;
     const steps = [
-      `Скачай пакет (.zip) кнопкой ниже — внутри уже лежит файл <code>${jsPath}</code> и все обрезанные фото по правильным путям.`,
+      `Скачай пакет (.zip) кнопкой ниже — внутри уже лежит файл <code>${jsPath}</code> (теги уже включены прямо в него) и все обрезанные фото по правильным путям.`,
       `Распакуй архив и перенеси файл данных в <code>${jsPath}</code> в своём проекте.`,
       `Перенеси папку с фото в <code>${imgFolder}</code> (создай папки, если их ещё нет).`,
       `Открой <code>src/data/vehicles/index.js</code> и добавь в начало импорт:<br><code>import ${camel} from "./${data.category}/${data.slug}";</code>`,
       `В том же файле добавь <code>${camel}</code> в массив <code>vehicles</code> (внутри квадратных скобок, через запятую с остальными).`,
+      `Сохрани и перезапусти <code>npm run dev</code> — машина появится в категории «${data.category}».`,
     ];
-    if (data.tagIds.length > 0) {
-      steps.push(
-        `Открой <code>src/data/vehicleTags.js</code> и добавь строку тегов машины (скопируй кнопкой «Скопировать строку тегов» ниже) внутрь объекта <code>vehicleTags</code>.`
-      );
-    }
-    steps.push(`Сохрани и перезапусти <code>npm run dev</code> — машина появится в категории «${data.category}».`);
     return steps;
   }
 
@@ -1159,7 +1160,7 @@
     const data = buildOutputData();
     jsPathPreview.textContent = `src/data/vehicles/${data.category}/${data.slug}.js`;
     codeOutput.value = generateCode(data);
-    //tagsCodeOutput.value = generateTagsSnippet(data);
+    tagsCodeOutput.value = generateTagsSnippet(data);
     renderInstructions(generateInstructions(data));
   }
 
@@ -1180,7 +1181,7 @@
   copyTagsBtn.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(tagsCodeOutput.value);
-      statusEl.textContent = "Строка тегов скопирована";
+      statusEl.textContent = "Список тегов скопирован";
     } catch {
       statusEl.textContent = "Не удалось скопировать — выдели текст вручную";
     }
@@ -1208,10 +1209,6 @@
 
     zip.file(`src/data/vehicles/${data.category}/${data.slug}.js`, generateCode(data));
 
-    // if (data.tagIds.length > 0) {
-    //   zip.file("vehicleTags-snippet.txt", generateTagsSnippet(data));
-    // }
-
     if (mainImage.blob) {
       zip.file(`public/images/vehicles/${data.category}/${data.slug}/main.jpg`, mainImage.blob);
     }
@@ -1226,20 +1223,13 @@
       `Куда положить файлы`,
       `====================`,
       ``,
-      `1. src/data/vehicles/${data.category}/${data.slug}.js -> положи в свой проект по этому же пути.`,
+      `1. src/data/vehicles/${data.category}/${data.slug}.js -> положи в свой проект по этому же пути (теги уже внутри файла).`,
       `2. Папку public/images/vehicles/${data.category}/${data.slug}/ -> перенеси в public/images/vehicles/${data.category}/ своего проекта.`,
       `3. Открой src/data/vehicles/index.js и добавь в начало файла:`,
       `   import ${camel} from "./${data.category}/${data.slug}";`,
       `4. В том же файле добавь ${camel} в массив vehicles.`,
+      `5. Сохрани и перезапусти npm run dev.`,
     ];
-    if (data.tagIds.length > 0) {
-      instructionsLines.push(
-        `5. Открой src/data/vehicleTags.js и вставь строку из vehicleTags-snippet.txt внутрь объекта vehicleTags.`,
-        `6. Сохрани и перезапусти npm run dev.`
-      );
-    } else {
-      instructionsLines.push(`5. Сохрани и перезапусти npm run dev.`);
-    }
     zip.file("INSTRUCTIONS.txt", instructionsLines.join("\n"));
 
     statusEl.textContent = "Собираю архив...";

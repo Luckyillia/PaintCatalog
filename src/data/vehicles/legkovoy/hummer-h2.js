@@ -2,7 +2,7 @@ export default {
   slug: "hummer-h2",
   category: "legkovoy",
   name: "Hummer H2",
-  tags: ["suv", "inomarka", "amerikanskiy", "era-2000s", "awd", "offroad"],
+  tags: ["hummer", "suv", "inomarka", "amerikanskiy", "era-2000s", "awd", "offroad"],
   image: "/images/vehicles/legkovoy/hummer-h2/main.jpg",
   colors: [
     { id: "yellow", name: "Yellow", hexes: ["#B78F0E", "#000000"], image: "/images/vehicles/legkovoy/hummer-h2/yellow.jpg" },
