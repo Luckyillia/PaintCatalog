@@ -44,7 +44,7 @@ export const creditGroups = [
         avatar: "https://sun9-10.vkuserphoto.ru/s/v1/ig2/L2kvApiOK3Mk0OErnSDzDS4A9F_Tui22KEYKqH2mXJA97542uov_FPA6FtTQWpCV1Q5Csj0UQB4apgf-PGeMWpWI.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,500x500&from=bu&u=ueqmHnc9p73HX2jisUlnUmCHWwxKlixIWidigR3nbmI&cs=500x0",
         link: "https://vk.ru/forwardautorent",
         providerId: "forward-auto-rent",
-        vehicleSlugs: ["volkswagen-jetta", "jeep-grand-cherokee-zj", "bmw-m5-f90", "cadillac-escalade", "audi-rs6-c7", "nissan-200sx", "nissan-400z" ],
+        vehicleSlugs: ["volkswagen-jetta", "jeep-grand-cherokee-zj", "bmw-m5-f90", "cadillac-escalade", "audi-rs6-c7", "nissan-200sx", "nissan-400z","mercedes-c200-w206" ],
       },
       {
         name: "Astvatsatur_Aesthetic",
