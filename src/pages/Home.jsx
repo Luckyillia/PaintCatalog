@@ -4,11 +4,13 @@ import CategoryCard from "../components/CategoryCard";
 export default function Home() {
   return (
     <div className="max-w-6xl mx-auto px-5 py-10">
-      <section className="mb-12 border border-hair rounded-lg bg-panel bg-shutter px-8 py-12 text-center">
-        <span className="font-mono text-xs tracking-[0.2em] text-signal uppercase">
-          Стайлинг-центр OSNOVA
-        </span>
-        <h1 className="font-display text-4xl sm:text-5xl tracking-wide text-ink mt-3">
+      <section className="mb-12 border border-hair rounded-lg bg-panel bg-shutter px-6 py-6 text-center">
+        <img
+          src="/images/logo.png"
+          alt="OSNOVA"
+          className="h-36 sm:h-36 w-auto mx-auto mb-4"
+        />
+        <h1 className="font-display text-4xl sm:text-5xl tracking-wide text-ink mt-1">
           Стоковые цвета транспорта
         </h1>
         <p className="font-body text-mute mt-4 max-w-xl mx-auto">

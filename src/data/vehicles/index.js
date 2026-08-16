@@ -29,12 +29,6 @@ import hummerH2 from "./legkovoy/hummer-h2";
 import volkswagenPolo from "./legkovoy/volkswagen-polo";
 import maseratiGranturismo from "./legkovoy/maserati-granturismo";
 import bmwZ4 from "./legkovoy/bmw-z4";
-// Раньше эти три файла существовали в src/data/vehicles/legkovoy/, но не были
-// подключены сюда — машины физически лежали в проекте, но не показывались
-// на сайте. Добавлены обратно.
-import vaz1111Oka from "./legkovoy/vaz-1111-oka";
-import zaz968 from "./legkovoy/zaz-968";
-import moskvich2140 from "./legkovoy/moskvich-2140";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
@@ -95,9 +89,6 @@ export const vehicles = [
   bmw850CsiKoenigSpecialsKs8,
   volkswagenJetta,
   porsche911RwbSlimer,
-  vaz1111Oka,
-  zaz968,
-  moskvich2140,
 ];
 
 export function getVehiclesByCategory(slug) {
