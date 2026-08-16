@@ -33,17 +33,35 @@ export default function Constructor() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [checking, setChecking] = useState(false);
+  const [html, setHtml] = useState(null);
   const iframeRef = useRef(null);
 
   useEffect(() => {
     document.title = "Конструктор — OSNOVA";
   }, []);
 
-  // Как только iframe с конструктором даёт знать, что готов слушать
-  // (см. public/constructor.html), отправляем ему настройки из .env —
-  // так поле "Подключение" внутри самого конструктора можно не трогать.
+  // Сам HTML/JS конструктора грузится отдельным JS-чанком и запрашивается
+  // у сервера ТОЛЬКО после успешного пароля (import() ниже вызывается
+  // не раньше unlocked === true). Пока пароль не введён верно, браузер
+  // физически не скачивает код конструктора — в отличие от старого
+  // варианта public/constructor.html, который был статикой и открывался
+  // прямым URL в обход пароля.
   useEffect(() => {
-    if (!unlocked) return;
+    if (!unlocked || html) return;
+    let cancelled = false;
+    import("../constructor/constructor-source.html?raw").then((mod) => {
+      if (!cancelled) setHtml(mod.default);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [unlocked, html]);
+
+  // Как только iframe с конструктором даёт знать, что готов слушать
+  // (см. src/constructor/constructor-source.html), отправляем ему
+  // настройки из .env.
+  useEffect(() => {
+    if (!unlocked || !html) return;
     function handleMessage(event) {
       if (event.data?.type === "osnova-constructor-ready") {
         iframeRef.current?.contentWindow?.postMessage(CONSTRUCTOR_CONFIG, "*");
@@ -51,7 +69,7 @@ export default function Constructor() {
     }
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [unlocked]);
+  }, [unlocked, html]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -122,10 +140,18 @@ export default function Constructor() {
     );
   }
 
+  if (!html) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-base">
+        <p className="font-body text-sm text-mute">Загружаю конструктор...</p>
+      </div>
+    );
+  }
+
   return (
     <iframe
       ref={iframeRef}
-      src="/constructor.html"
+      srcDoc={html}
       title="Конструктор транспорта"
       className="w-full h-screen border-0 block"
     />
