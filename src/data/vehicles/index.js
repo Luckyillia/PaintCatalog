@@ -43,7 +43,7 @@ export { categories, getCategory } from "../categories";
 export { tags, tagGroups, getTag, getTagColor } from "../tags";
 
 const rawVehicles = [
-  lexusLfa
+  lexusLfa,
   chevroletSuburban,
   subaruForedterSg9,
   cadillacEscalade,
