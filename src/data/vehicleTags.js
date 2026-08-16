@@ -1,10 +1,3 @@
-// Карта slug → массив id тегов. Отдельно от файлов машин специально,
-// чтобы конструктор (File System Access API) продолжал спокойно
-// патчить только vehicles/index.js, не зная о тегах.
-//
-// Когда добавляешь новую машину — просто добавь сюда одну строку
-// с её slug и нужными тегами.
-//
 // ---------------------------------------------------------------------
 // СПРАВОЧНИК ВСЕХ ДОСТУПНЫХ ТЕГОВ (актуальный список — см. src/data/tags.js)
 // Просто копируй id из нужных групп в массив к своей машине.
@@ -13,23 +6,33 @@
 // Марка:
 //   bmw, vaz, volkswagen, porsche, chevrolet, audi, uaz, jeep, lada,
 //   nissan, mercedes, toyota, honda, ford, mazda, mitsubishi, subaru,
-//   lexus, kia, hyundai, gaz, moskvich, zaz, ural, kamaz
+//   lexus, kia, hyundai, gaz, moskvich, zaz, ural, kamaz, opel, renault,
+//   peugeot, citroen, fiat, alfa-romeo, ferrari, lamborghini, maserati,
+//   bentley, rolls-royce, aston-martin, bugatti, mclaren, jaguar,
+//   land-rover, mini, volvo, saab, skoda, seat, dodge, chrysler,
+//   cadillac, buick, gmc, pontiac, lincoln, infiniti, acura, datsun,
+//   suzuki, isuzu, tesla, zil, izh, maz, chery, geely, haval, byd
 //
 // Кузов:
 //   sedan, suv, coupe, wagon, hatchback, liftback, pickup, minivan,
-//   cabrio, crossover, bus, truck, moto
+//   cabrio, crossover, bus, truck, moto, roadster, targa, muscle-car,
+//   lowrider, van, microvan, semi-truck, dump-truck, tow-truck,
+//   fire-truck, ambulance, limousine, buggy, supercar, hypercar
 //
 // Происхождение:
-//   otechestvenniy, inomarka, sovetskiy, evropeyskiy, amerikanskiy, aziatskiy
+//   otechestvenniy, inomarka, sovetskiy, evropeyskiy, amerikanskiy,
+//   aziatskiy, nemetskiy, yaponskiy, koreyskiy, kitayskiy
 //
 // Эпоха:
-//   era-80s, era-90s, era-2000s, era-2010s, era-2020s
+//   era-50s, era-60s, era-70s, era-80s, era-90s, era-2000s, era-2010s, era-2020s
 //
 // Привод:
 //   fwd, rwd, awd
 //
 // Особое:
-//   tuning, limited, sport, offroad, stance, restomod, police, event
+//   tuning, limited, sport, offroad, stance, restomod, police, event,
+//   widebody, lifted, slammed, jdm, retro, taxi, military, vip, drift,
+//   rally, concept, matte, wrap, service, racing
 //
 // ---------------------------------------------------------------------
 // Пример разметки новой машины:
@@ -49,7 +52,7 @@ export const vehicleTags = {
   "chevrolet-caprice": ["chevrolet", "sedan", "inomarka"],
   "bmw-m6-f13": ["bmw", "coupe", "inomarka"],
   "audi-a4-allroad-quattro": ["audi", "wagon", "inomarka"],
-  "chevrolet-tahoe-ltz": ["chevrolet", "suv", "inomarka"],
+  "chevrolet-tahoe-ltz": ["inomarka", "suv", "awd", "era-2000s", "chevrolet", "amerikanskiy"],
   "volkswagen-passat-b3": ["volkswagen", "wagon", "inomarka"],
   "uaz-patriot": ["uaz", "suv", "otechestvenniy"],
   "jeep-grand-cherokee-zj": ["jeep", "suv", "inomarka"],
@@ -60,6 +63,9 @@ export const vehicleTags = {
   "audi-rs6-c7": ["inomarka", "sport", "wagon", "audi", "evropeyskiy", "era-2010s", "awd"],
   "mercedes-s-class-w220": ["inomarka", "evropeyskiy", "mercedes", "sedan", "era-2000s", "rwd"],
   "chevrolet-suburban": ["chevrolet", "suv", "inomarka", "amerikanskiy", "awd", "era-90s"],
+  "subaruForedterSg9": ["inomarka", "aziatskiy", "suv", "era-2000s", "awd", "subaru"],
+  "cadillacEscalade": ["cadillac", "inomarka", "suv", "awd", "amerikanskiy", "era-2010s"],
+  "audiQ72013": ["inomarka", "suv", "awd", "audi", "evropeyskiy", "era-2000s"],
 
   // sobytiya
   "bmw-850-csi-koenig-specials-ks8": ["bmw", "coupe", "inomarka", "tuning"],
