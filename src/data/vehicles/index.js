@@ -24,6 +24,7 @@ import cadillacEscalade from "./legkovoy/cadillac-escalade";
 import subaruForesterSg9 from "./legkovoy/subaru-forester-sg-9";
 import chevroletSuburban from "./legkovoy/chevrolet-suburban";
 import lexusLfa from "./legkovoy/lexus-lfa";
+import mercedesC200W206 from "./legkovoy/mercedes-c200-w206";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
@@ -45,6 +46,7 @@ export { categories, getCategory } from "../categories";
 export { tags, tagGroups, getTag, getTagColor } from "../tags";
 
 const rawVehicles = [
+  mercedesC200W206,
   lexusLfa,
   chevroletSuburban,
   subaruForesterSg9,
@@ -77,6 +79,7 @@ const rawVehicles = [
   bmw850CsiKoenigSpecialsKs8,
   volkswagenJetta,
   porsche911RwbSlimer,
+  
 ];
 
 // Приклеиваем теги из vehicleTags.js к каждой машине по slug
