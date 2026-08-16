@@ -1428,6 +1428,29 @@
   loadConnectionSettings();
 
   /* ---------------------------------------------------------------------
+     Приём настроек подключения от родительской страницы (React-обёртка
+     с паролем передаёт значения из .env через postMessage — так они
+     не хранятся вручную в этом файле). Если конструктор открыт напрямую
+     (не через /vehicle-constructor), это сообщение не придёт, и панель
+     "Подключение" останется как раньше — доступной для ручного ввода.
+  --------------------------------------------------------------------- */
+  window.addEventListener("message", (event) => {
+    const cfg = event.data;
+    if (!cfg || cfg.type !== "osnova-constructor-config") return;
+    supabaseUrlInput.value = cfg.supabaseUrl || "";
+    supabaseAnonKeyInput.value = cfg.supabaseAnonKey || "";
+    cloudinaryCloudInput.value = cfg.cloudinaryCloud || "";
+    cloudinaryPresetInput.value = cfg.cloudinaryPreset || "";
+    const panel = document.getElementById("connectionPanel");
+    if (panel && cfg.supabaseUrl && cfg.cloudinaryCloud) {
+      panel.style.display = "none";
+    }
+  });
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: "osnova-constructor-ready" }, "*");
+  }
+
+  /* ---------------------------------------------------------------------
      Init
   --------------------------------------------------------------------- */
 

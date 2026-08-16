@@ -1,9 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Хэш пароля берётся из .env (VITE_CONSTRUCTOR_PASSWORD_HASH), сам пароль
 // в код/сборку не попадает. Сгенерировать хэш: node scripts/hash-password.mjs "пароль"
 const PASSWORD_HASH = import.meta.env.VITE_CONSTRUCTOR_PASSWORD_HASH;
 const SESSION_KEY = "osnova-constructor-unlocked";
+
+// Настройки Supabase/Cloudinary для самого конструктора (не для
+// scripts/pull-vehicles.mjs — там свои, серверные переменные без
+// префикса VITE_). Эти значения и так не секретные — anon-ключ
+// Supabase умеет только INSERT (RLS), Cloudinary-пресет — только
+// upload, так что их наличие в собранном JS не проблема.
+const CONSTRUCTOR_CONFIG = {
+  type: "osnova-constructor-config",
+  supabaseUrl: import.meta.env.VITE_SUPABASE_URL || "",
+  supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
+  cloudinaryCloud: import.meta.env.VITE_CLOUDINARY_CLOUD || "",
+  cloudinaryPreset: import.meta.env.VITE_CLOUDINARY_PRESET || "",
+};
 
 async function sha256Hex(text) {
   const data = new TextEncoder().encode(text);
@@ -20,10 +33,25 @@ export default function Constructor() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [checking, setChecking] = useState(false);
+  const iframeRef = useRef(null);
 
   useEffect(() => {
     document.title = "Конструктор — OSNOVA";
   }, []);
+
+  // Как только iframe с конструктором даёт знать, что готов слушать
+  // (см. public/constructor.html), отправляем ему настройки из .env —
+  // так поле "Подключение" внутри самого конструктора можно не трогать.
+  useEffect(() => {
+    if (!unlocked) return;
+    function handleMessage(event) {
+      if (event.data?.type === "osnova-constructor-ready") {
+        iframeRef.current?.contentWindow?.postMessage(CONSTRUCTOR_CONFIG, "*");
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [unlocked]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -96,6 +124,7 @@ export default function Constructor() {
 
   return (
     <iframe
+      ref={iframeRef}
       src="/constructor.html"
       title="Конструктор транспорта"
       className="w-full h-screen border-0 block"
