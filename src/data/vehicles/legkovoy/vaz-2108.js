@@ -2,7 +2,7 @@ export default {
   slug: "vaz-2108",
   category: "legkovoy",
   name: "ВАЗ 2108",
-  tags: ["vaz", "hatchback", "otechestvenniy", "sovetskiy"],
+  tags: ["vaz", "otechestvenniy", "coupe", "hatchback", "era-2000s", "fwd"],
   image: "/images/vehicles/legkovoy/vaz-2108/main.jpg",
   colors: [
     { id: "variant-1", name: "Вариант 1", hexes: ["#730404", "#000000"], image: "/images/vehicles/legkovoy/vaz-2108/variant-1.jpg" },
