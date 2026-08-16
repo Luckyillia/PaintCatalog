@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ExternalLink, ChevronRight } from "lucide-react";
+import { getProviderNote } from "../data/credits";
 
 export default function CreditCard({ entry }) {
   const initials = entry.name
@@ -12,6 +13,7 @@ export default function CreditCard({ entry }) {
   const hasProviderPage = Boolean(entry.providerId);
   const hasLink = Boolean(entry.link);
   const clickable = hasProviderPage || hasLink;
+  const note = getProviderNote(entry);
 
   const Wrapper = hasProviderPage ? Link : hasLink ? "a" : "div";
   const wrapperProps = hasProviderPage
@@ -53,9 +55,9 @@ export default function CreditCard({ entry }) {
         <p className="font-mono text-xs text-signal uppercase tracking-[0.1em] mt-0.5">
           {entry.role}
         </p>
-        {entry.note && (
+        {note && (
           <p className="font-body text-xs text-mute mt-1.5 leading-snug">
-            {entry.note}
+            {note}
           </p>
         )}
       </div>

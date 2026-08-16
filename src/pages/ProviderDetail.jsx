@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { getProviderById } from "../data/credits";
+import { getProviderById, getProviderNote } from "../data/credits";
 import { getVehicle } from "../data/vehicles";
 import Breadcrumbs from "../components/Breadcrumbs";
 import VehicleCard from "../components/VehicleCard";
@@ -25,6 +25,8 @@ export default function ProviderDetail() {
   const vehicles = (provider.vehicleSlugs ?? [])
     .map((slug) => getVehicle(slug))
     .filter(Boolean);
+
+  const note = getProviderNote(provider);
 
   const initials = provider.name
     .split(" ")
@@ -65,9 +67,7 @@ export default function ProviderDetail() {
           <h1 className="font-display text-3xl sm:text-4xl tracking-wide text-ink mt-1">
             {provider.name}
           </h1>
-          {provider.note && (
-            <p className="font-body text-mute mt-2">{provider.note}</p>
-          )}
+          {note && <p className="font-body text-mute mt-2">{note}</p>}
         </div>
 
         {provider.link && (
