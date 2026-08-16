@@ -2,7 +2,7 @@ export default {
   slug: "nissan-400z",
   category: "legkovoy",
   name: "Nissan 400Z",
-  tags: ["nissan", "coupe", "inomarka"],
+  tags: ["nissan", "coupe", "inomarka", "aziatskiy", "yaponskiy", "rwd", "era-2020s"],
   image: "/images/vehicles/legkovoy/nissan-400z/main.jpg",
   colors: [
     { id: "seiran-blue", name: "Seiran Blue", hexes: ["#082966", "#000000"], image: "/images/vehicles/legkovoy/nissan-400z/seiran-blue.jpg" },

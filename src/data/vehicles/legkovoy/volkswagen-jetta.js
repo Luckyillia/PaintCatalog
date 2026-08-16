@@ -2,7 +2,7 @@ export default {
   slug: "volkswagen-jetta",
   category: "legkovoy",
   name: "Volkswagen Jetta",
-  tags: ["volkswagen", "sedan", "inomarka"],
+  tags: ["inomarka", "evropeyskiy", "nemetskiy", "volkswagen", "fwd", "sedan", "era-2020s"],
   image: "/images/vehicles/legkovoy/volkswagen-jetta/combo-1.png",
   colors: [
     { id: "combo-1", name: "Вариант 1", hexes: ["#831808", "#000000"], image: "/images/vehicles/legkovoy/volkswagen-jetta/combo-1.png" },

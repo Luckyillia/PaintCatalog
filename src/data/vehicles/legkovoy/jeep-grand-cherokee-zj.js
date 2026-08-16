@@ -2,7 +2,7 @@ export default {
   slug: "jeep-grand-cherokee-zj",
   category: "legkovoy",
   name: "Jeep Grand Cherokee ZJ",
-  tags: ["jeep", "suv", "inomarka"],
+  tags: ["inomarka", "jeep", "suv", "amerikanskiy", "awd", "era-90s", "offroad"],
   image: "/images/vehicles/legkovoy/jeep-grand-cherokee-zj/main.jpg",
   colors: [
     { id: "flame-red", name: "Flame Red", hexes: ["#460C0C", "#000000"], image: "/images/vehicles/legkovoy/jeep-grand-cherokee-zj/flame-red.jpg" },

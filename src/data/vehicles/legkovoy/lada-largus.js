@@ -2,7 +2,7 @@ export default {
   slug: "lada-largus",
   category: "legkovoy",
   name: "Lada Largus",
-  tags: ["lada", "wagon", "otechestvenniy"],
+  tags: ["otechestvenniy", "era-2010s", "vaz", "wagon", "fwd"],
   image: "/images/vehicles/legkovoy/lada-largus/main.jpg",
   colors: [
     { id: "cashmere", name: "Cashmere", hexes: ["#1B130D", "#000000"], image: "/images/vehicles/legkovoy/lada-largus/cashmere.jpg" },

@@ -2,7 +2,7 @@ export default {
   slug: "uaz-patriot",
   category: "legkovoy",
   name: "УАЗ Патриот",
-  tags: ["uaz", "suv", "otechestvenniy"],
+  tags: ["otechestvenniy", "uaz", "suv", "era-2010s", "awd"],
   image: "/images/vehicles/legkovoy/uaz-patriot/main.jpg",
   colors: [
     { id: "oranzhevyy", name: "Оранжевый", hexes: ["#BE3D00", "#1B0601"], image: "/images/vehicles/legkovoy/uaz-patriot/oranzhevyy.jpg" },

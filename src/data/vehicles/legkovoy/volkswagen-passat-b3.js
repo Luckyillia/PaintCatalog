@@ -2,7 +2,7 @@ export default {
   slug: "volkswagen-passat-b3",
   category: "legkovoy",
   name: "Volkswagen Passat B3",
-  tags: ["volkswagen", "wagon", "inomarka"],
+  tags: ["inomarka", "evropeyskiy", "nemetskiy", "volkswagen", "wagon", "era-90s", "fwd"],
   image: "/images/vehicles/legkovoy/volkswagen-passat-b3/main.jpg",
   colors: [
     { id: "medium-blue-metallic", name: "Medium Blue Metallic", hexes: ["#445C68", "#000000"], image: "/images/vehicles/legkovoy/volkswagen-passat-b3/medium-blue-metallic.jpg" },
