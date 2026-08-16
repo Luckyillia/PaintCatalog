@@ -1,0 +1,1442 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Конструктор карточки транспорта — OSNOVA</title>
+<style>
+  :root {
+    --base: #0a0c0f;
+    --panel: #14171c;
+    --raised: #1b1f25;
+    --raised2: #20252b;
+    --hair: #262b32;
+    --ink: #e7ecef;
+    --mute: #8b95a1;
+    --signal: #39c98f;
+    --signal-dim: #1f6b4d;
+    --signal-bright: #5be3ac;
+    --amber: #f0a63d;
+    --danger: #e35d5d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--base);
+    color: var(--ink);
+    font-family: 'Segoe UI', Inter, sans-serif;
+    padding: 24px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  h1 { font-size: 22px; letter-spacing: 0.02em; margin: 0 0 4px; }
+  h2 { font-size: 16px; letter-spacing: 0.02em; margin: 0 0 14px; color: var(--ink); }
+  .sub { color: var(--mute); font-size: 13px; margin: 0 0 24px; line-height: 1.5; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--hair);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+  label {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--mute); display: block; margin-bottom: 6px;
+  }
+  select, input[type="text"], input[type="number"], textarea {
+    background: var(--raised); border: 1px solid var(--hair); color: var(--ink);
+    padding: 9px 12px; border-radius: 6px; font-size: 14px; font-family: inherit;
+    width: 100%;
+  }
+  input[type="color"] {
+    width: 44px; height: 38px; padding: 2px; border-radius: 6px;
+    border: 1px solid var(--hair); background: var(--raised); cursor: pointer;
+  }
+  select:focus, input:focus, textarea:focus {
+    outline: 2px solid var(--signal); outline-offset: 1px;
+  }
+  input[type="file"] { color: var(--mute); font-size: 13px; }
+  .field { flex: 1; min-width: 160px; }
+  .field.grow { flex: 2; min-width: 220px; }
+  .field.small { flex: 0 0 170px; min-width: 170px; }
+  button {
+    background: var(--signal); color: #06120d; border: none; padding: 10px 16px;
+    border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;
+    white-space: nowrap;
+  }
+  button:hover { background: var(--signal-bright); }
+  button:disabled { background: var(--hair); color: var(--mute); cursor: not-allowed; }
+  button.secondary { background: var(--raised2); color: var(--ink); border: 1px solid var(--hair); }
+  button.secondary:hover { border-color: var(--signal); background: var(--raised2); }
+  button.danger { background: var(--raised2); color: var(--danger); border: 1px solid var(--hair); }
+  button.danger:hover { border-color: var(--danger); }
+  button.tiny { padding: 6px 10px; font-size: 12px; }
+
+  .path-preview {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; background: var(--raised);
+    border: 1px solid var(--hair); border-radius: 6px; padding: 10px 12px;
+    color: var(--signal); word-break: break-all;
+  }
+  .hint { color: var(--mute); font-size: 12px; line-height: 1.5; margin-top: 10px; }
+  .status { font-size: 13px; color: var(--signal); min-height: 18px; }
+
+  .thumb {
+    width: 72px; height: 54px; border-radius: 6px; border: 1px solid var(--hair);
+    background: var(--raised) repeating-conic-gradient(#20252b 0% 25%, #191d23 0% 50%) 50%/12px 12px;
+    display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb .empty { color: var(--mute); font-size: 10px; text-align: center; padding: 2px; }
+
+  .color-row {
+    border: 1px solid var(--hair); border-radius: 8px; padding: 14px; margin-bottom: 10px;
+    background: var(--raised);
+  }
+  .color-row-top { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .color-row-bottom { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-top: 10px; }
+  .swatch-pair { display: flex; gap: 4px; }
+  .swatch-pair input[type="text"] { font-family: 'JetBrains Mono', monospace; }
+  .checkbox-line {
+    display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--mute);
+    white-space: nowrap; padding-bottom: 9px;
+  }
+  .checkbox-line input { width: auto; }
+
+  .tag-group { margin-bottom: 16px; }
+  .tag-group:last-child { margin-bottom: 0; }
+  .tag-group-title {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--mute); margin-bottom: 8px;
+  }
+  .tag-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag-chip {
+    background: transparent;
+    border: 1px solid var(--tag-color, var(--hair));
+    color: var(--tag-color, var(--mute));
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 7px 13px; border-radius: 999px; cursor: pointer;
+    box-shadow: 0 0 6px 0 var(--tag-glow, transparent);
+    transition: filter .15s ease, background .15s ease, color .15s ease;
+  }
+  .tag-chip:hover { filter: brightness(1.2); }
+  .tag-chip.active {
+    background: var(--tag-color, var(--signal));
+    color: #06120d;
+    box-shadow: 0 0 0 1px var(--tag-color, var(--signal)), 0 0 10px 0 var(--tag-glow-strong, transparent);
+  }
+  .tags-summary {
+    font-size: 12px; color: var(--mute); margin-top: 4px;
+  }
+
+  textarea.code-output {
+    font-family: 'JetBrains Mono', monospace; font-size: 12.5px; min-height: 220px;
+    color: var(--ink); resize: vertical; line-height: 1.5;
+  }
+
+  .instructions { font-size: 13px; line-height: 1.7; color: var(--ink); }
+  .instructions code {
+    background: var(--raised); border: 1px solid var(--hair); border-radius: 4px;
+    padding: 1px 6px; font-family: 'JetBrains Mono', monospace; color: var(--signal);
+  }
+  .instructions ol { padding-left: 20px; }
+
+  /* cropper modal */
+  #cropperOverlay {
+    display: none; position: fixed; inset: 0; background: rgba(6,8,10,0.85);
+    z-index: 50; align-items: center; justify-content: center; padding: 20px;
+  }
+  #cropperOverlay.open { display: flex; }
+  .cropper-box {
+    background: var(--panel); border: 1px solid var(--hair); border-radius: 10px;
+    padding: 18px; max-width: 900px; width: 100%;
+  }
+  .cropper-canvas-holder {
+    display: flex; justify-content: center;
+    background: repeating-conic-gradient(#20252b 0% 25%, #191d23 0% 50%) 50%/20px 20px;
+    border: 1px solid var(--hair); border-radius: 8px; padding: 12px; overflow: auto;
+    max-height: 60vh;
+  }
+  #cropperCanvas { cursor: move; max-width: 100%; display: block; }
+  .cropper-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; gap: 10px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Конструктор карточки транспорта</h1>
+  <p class="sub">
+    Заполни данные, обрежь фото под нужный формат прямо здесь и скачай готовый пакет файлов —
+    останется только разложить их по папкам проекта и добавить пару строк в один файл.
+  </p>
+
+  <div class="panel" id="connectionPanel">
+    <h2>Подключение (один раз, хранится только в этом браузере)</h2>
+    <div class="row">
+      <div class="field grow">
+        <label for="supabaseUrl">Supabase URL</label>
+        <input type="text" id="supabaseUrl" placeholder="https://xxxx.supabase.co" />
+      </div>
+      <div class="field grow">
+        <label for="supabaseAnonKey">Supabase anon key</label>
+        <input type="text" id="supabaseAnonKey" placeholder="eyJhbGciOi..." />
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px;">
+      <div class="field">
+        <label for="cloudinaryCloud">Cloudinary cloud name</label>
+        <input type="text" id="cloudinaryCloud" placeholder="my-cloud" />
+      </div>
+      <div class="field">
+        <label for="cloudinaryPreset">Cloudinary unsigned upload preset</label>
+        <input type="text" id="cloudinaryPreset" placeholder="osnova-unsigned" />
+      </div>
+      <button type="button" class="secondary" id="saveConnectionBtn">Сохранить настройки</button>
+      <span class="status" id="connectionStatus"></span>
+    </div>
+    <p class="hint">
+      Anon key и unsigned preset — публичные по своей природе (для того и созданы), но всё равно
+      ограничь их на стороне Supabase (RLS: только insert) и Cloudinary (preset: только этот проект),
+      чтобы через них нельзя было ничего кроме добавления новой машины.
+    </p>
+  </div>
+
+  <div class="panel" id="basicPanel">
+    <h2>Основное</h2>
+    <div class="row">
+      <div class="field">
+        <label for="category">Категория</label>
+        <select id="category">
+          <option value="legkovoy">legkovoy — Легковой транспорт</option>
+          <option value="gruzovoy">gruzovoy — Грузовой транспорт</option>
+          <option value="obshestvenniy">obshestvenniy — Общественный транспорт</option>
+          <option value="moto">moto — Мототранспорт</option>
+          <option value="konteynery">konteynery — Автомобили из контейнеров</option>
+          <option value="sobytiya">sobytiya — Автомобили из событий</option>
+        </select>
+      </div>
+      <div class="field grow">
+        <label for="vehicleName">Название машины</label>
+        <input type="text" id="vehicleName" placeholder="ЗАЗ-968 «Запорожец»" />
+      </div>
+      <div class="field">
+        <label for="vehicleSlug">Slug (латиницей, для путей и URL)</label>
+        <input type="text" id="vehicleSlug" placeholder="zaz-968" />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top: 16px;">
+      <div class="field grow">
+        <label>Фото карточки (обложка)</label>
+        <div class="row" style="align-items:center; gap:10px;">
+          <div class="thumb" id="mainThumb"><span class="empty">нет фото</span></div>
+          <input type="file" id="mainFileInput" accept="image/*" style="flex:1; min-width:180px;" />
+          <button type="button" class="secondary tiny" id="mainCropBtn" disabled>Обрезать</button>
+          <button type="button" class="danger tiny" id="mainRemoveBtn" disabled>Убрать</button>
+        </div>
+      </div>
+    </div>
+
+    <label style="margin-top:16px;">Путь к файлу с данными машины</label>
+    <div class="path-preview" id="jsPathPreview">src/data/vehicles/legkovoy/zaz-968.js</div>
+  </div>
+
+  <div class="panel" id="colorsPanel">
+    <h2>Цвета окраски</h2>
+    <div id="colorsList"></div>
+    <button type="button" class="secondary" id="addColorBtn">+ Добавить цвет</button>
+  </div>
+
+  <div class="panel" id="tagsPanel">
+    <h2>Теги</h2>
+    <p class="hint" style="margin-top:-6px; margin-bottom:16px;">
+      Отметь теги, которые подходят машине — они нужны для фильтра на сайте
+      (кузов, марка, происхождение и т.д.). Можно не выбирать ни одного.
+    </p>
+    <div id="tagsGroups"></div>
+    <p class="tags-summary" id="tagsSummary">Теги не выбраны</p>
+  </div>
+
+  <div class="panel" id="outputPanel">
+    <h2>Результат</h2>
+
+    <label>Код файла данных (можно скопировать и вставить вручную)</label>
+    <textarea class="code-output" id="codeOutput" readonly spellcheck="false"></textarea>
+
+    <label style="margin-top: 16px;">Строка для <code style="background: var(--raised); border: 1px solid var(--hair); border-radius: 4px; padding: 1px 6px; font-family: 'JetBrains Mono', monospace; color: var(--signal);">src/data/vehicleTags.js</code> (теги машины)</label>
+    <textarea class="code-output" id="tagsCodeOutput" readonly spellcheck="false" style="min-height: 60px;"></textarea>
+
+    <div class="row" style="margin-top: 14px;">
+      <button type="button" id="copyCodeBtn" class="secondary">Скопировать код</button>
+      <button type="button" id="copyTagsBtn" class="secondary">Скопировать строку тегов</button>
+      <button type="button" id="downloadJsBtn" class="secondary">Скачать .js файл</button>
+      <button type="button" id="downloadZipBtn">Скачать всё пакетом (.zip)</button>
+      <span class="status" id="status"></span>
+    </div>
+
+    <div class="row" style="margin-top: 10px;">
+      <button type="button" id="publishBtn">Опубликовать онлайн (Supabase + Cloudinary)</button>
+      <span class="status" id="publishStatus"></span>
+    </div>
+    <p class="hint">
+      Фото уходят в Cloudinary, а описание машины (с этими же путями к фото) — в таблицу
+      <code>pending_vehicles</code> в Supabase. Локально на компьютере запускаешь
+      <code>node scripts/pull-vehicles.mjs</code> — он скачает фото, создаст файл машины
+      и подскажет две строки для <code>index.js</code>.
+    </p>
+
+    <div class="instructions" style="margin-top:20px;">
+      <h2>Как поставить на сайт</h2>
+      <ol id="instructionsList"></ol>
+    </div>
+  </div>
+</div>
+
+<!-- Cropper modal -->
+<div id="cropperOverlay">
+  <div class="cropper-box">
+    <div class="row" style="margin-bottom:12px;">
+      <div class="field">
+        <label for="cropRatioSelect">Формат под сайт</label>
+        <select id="cropRatioSelect">
+          <option value="4:3">Карточка машины / категории (4:3)</option>
+          <option value="16:9">Фото в игре, деталь (16:9)</option>
+          <option value="1:1">Квадрат (1:1)</option>
+          <option value="free">Свободно, без ограничений</option>
+        </select>
+      </div>
+    </div>
+    <div class="cropper-canvas-holder">
+      <canvas id="cropperCanvas"></canvas>
+    </div>
+    <p class="hint">
+      Тяни рамку за середину — двигаешь. Тяни за квадратик в правом нижнем углу — меняешь размер
+      (пропорции держатся, если формат не «Свободно»).
+    </p>
+    <div class="cropper-actions">
+      <button type="button" class="danger" id="cropCancelBtn">Отмена</button>
+      <button type="button" id="cropConfirmBtn">Применить обрезку</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* ---------------------------------------------------------------------
+     Utilities
+  --------------------------------------------------------------------- */
+
+  function sanitizeSlug(value, fallback) {
+    const v = (value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[йцукенгшщзхъфывапролджэячсмитьбю]/g, (ch) => transliterate(ch))
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+    return v || fallback;
+  }
+
+  const TRANSLIT_MAP = {
+    а:"a", б:"b", в:"v", г:"g", д:"d", е:"e", ё:"e", ж:"zh", з:"z", и:"i",
+    й:"y", к:"k", л:"l", м:"m", н:"n", о:"o", п:"p", р:"r", с:"s", т:"t",
+    у:"u", ф:"f", х:"h", ц:"ts", ч:"ch", ш:"sh", щ:"sch", ъ:"", ы:"y", ь:"",
+    э:"e", ю:"yu", я:"ya"
+  };
+  function transliterate(ch) {
+    return TRANSLIT_MAP[ch] !== undefined ? TRANSLIT_MAP[ch] : ch;
+  }
+  function transliterateStr(str) {
+    return (str || "").toLowerCase().split("").map(c => TRANSLIT_MAP[c] !== undefined ? TRANSLIT_MAP[c] : c).join("");
+  }
+
+  function toCamelCase(slug) {
+    const parts = transliterateStr(slug).replace(/[^a-z0-9-]+/g, "-").split("-").filter(Boolean);
+    if (parts.length === 0) return "vehicle";
+    let out = parts[0];
+    for (let i = 1; i < parts.length; i++) {
+      out += parts[i].charAt(0).toUpperCase() + parts[i].slice(1);
+    }
+    if (/^[0-9]/.test(out)) out = "_" + out;
+    return out;
+  }
+
+  function normalizeHex(value) {
+    let v = (value || "").trim();
+    if (!v) return "";
+    if (v[0] !== "#") v = "#" + v;
+    return v.toUpperCase();
+  }
+
+  let uidCounter = 0;
+  function nextUid() { return "row-" + (++uidCounter); }
+
+  function escapeJsString(str) {
+    return String(str).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+  }
+
+  /* ---------------------------------------------------------------------
+     Tags registry — keep this list in sync with src/data/tags.js on the
+     site. Each tag gets its own unique color (golden-angle hue rotation,
+     same algorithm as the site) so chips never repeat colors even as the
+     list grows.
+  --------------------------------------------------------------------- */
+
+  const TAG_GROUPS = [
+    { id: "brand", label: "Марка" },
+    { id: "body", label: "Кузов" },
+    { id: "origin", label: "Происхождение" },
+    { id: "era", label: "Эпоха" },
+    { id: "drive", label: "Привод" },
+    { id: "special", label: "Особое" },
+  ];
+
+  const RAW_TAGS = [
+    // Марка
+    { id: "bmw", label: "BMW", group: "brand" },
+    { id: "vaz", label: "ВАЗ", group: "brand" },
+    { id: "volkswagen", label: "Volkswagen", group: "brand" },
+    { id: "porsche", label: "Porsche", group: "brand" },
+    { id: "chevrolet", label: "Chevrolet", group: "brand" },
+    { id: "audi", label: "Audi", group: "brand" },
+    { id: "uaz", label: "УАЗ", group: "brand" },
+    { id: "jeep", label: "Jeep", group: "brand" },
+    { id: "lada", label: "Lada", group: "brand" },
+    { id: "nissan", label: "Nissan", group: "brand" },
+    { id: "mercedes", label: "Mercedes-Benz", group: "brand" },
+    { id: "toyota", label: "Toyota", group: "brand" },
+    { id: "honda", label: "Honda", group: "brand" },
+    { id: "ford", label: "Ford", group: "brand" },
+    { id: "mazda", label: "Mazda", group: "brand" },
+    { id: "mitsubishi", label: "Mitsubishi", group: "brand" },
+    { id: "subaru", label: "Subaru", group: "brand" },
+    { id: "lexus", label: "Lexus", group: "brand" },
+    { id: "kia", label: "Kia", group: "brand" },
+    { id: "hyundai", label: "Hyundai", group: "brand" },
+    { id: "gaz", label: "ГАЗ", group: "brand" },
+    { id: "moskvich", label: "Москвич", group: "brand" },
+    { id: "zaz", label: "ЗАЗ", group: "brand" },
+    { id: "ural", label: "Урал", group: "brand" },
+    { id: "kamaz", label: "КамАЗ", group: "brand" },
+    { id: "opel", label: "Opel", group: "brand" },
+    { id: "renault", label: "Renault", group: "brand" },
+    { id: "peugeot", label: "Peugeot", group: "brand" },
+    { id: "citroen", label: "Citroën", group: "brand" },
+    { id: "fiat", label: "Fiat", group: "brand" },
+    { id: "alfa-romeo", label: "Alfa Romeo", group: "brand" },
+    { id: "ferrari", label: "Ferrari", group: "brand" },
+    { id: "lamborghini", label: "Lamborghini", group: "brand" },
+    { id: "maserati", label: "Maserati", group: "brand" },
+    { id: "bentley", label: "Bentley", group: "brand" },
+    { id: "rolls-royce", label: "Rolls-Royce", group: "brand" },
+    { id: "aston-martin", label: "Aston Martin", group: "brand" },
+    { id: "bugatti", label: "Bugatti", group: "brand" },
+    { id: "mclaren", label: "McLaren", group: "brand" },
+    { id: "jaguar", label: "Jaguar", group: "brand" },
+    { id: "land-rover", label: "Land Rover", group: "brand" },
+    { id: "mini", label: "Mini", group: "brand" },
+    { id: "volvo", label: "Volvo", group: "brand" },
+    { id: "saab", label: "Saab", group: "brand" },
+    { id: "skoda", label: "Škoda", group: "brand" },
+    { id: "seat", label: "Seat", group: "brand" },
+    { id: "dodge", label: "Dodge", group: "brand" },
+    { id: "chrysler", label: "Chrysler", group: "brand" },
+    { id: "cadillac", label: "Cadillac", group: "brand" },
+    { id: "buick", label: "Buick", group: "brand" },
+    { id: "gmc", label: "GMC", group: "brand" },
+    { id: "pontiac", label: "Pontiac", group: "brand" },
+    { id: "lincoln", label: "Lincoln", group: "brand" },
+    { id: "infiniti", label: "Infiniti", group: "brand" },
+    { id: "acura", label: "Acura", group: "brand" },
+    { id: "datsun", label: "Datsun", group: "brand" },
+    { id: "suzuki", label: "Suzuki", group: "brand" },
+    { id: "isuzu", label: "Isuzu", group: "brand" },
+    { id: "tesla", label: "Tesla", group: "brand" },
+    { id: "zil", label: "ЗИЛ", group: "brand" },
+    { id: "izh", label: "ИЖ", group: "brand" },
+    { id: "maz", label: "МАЗ", group: "brand" },
+    { id: "chery", label: "Chery", group: "brand" },
+    { id: "geely", label: "Geely", group: "brand" },
+    { id: "haval", label: "Haval", group: "brand" },
+    { id: "byd", label: "BYD", group: "brand" },
+
+    // Кузов
+    { id: "sedan", label: "Седан", group: "body" },
+    { id: "suv", label: "Внедорожник", group: "body" },
+    { id: "coupe", label: "Купе", group: "body" },
+    { id: "wagon", label: "Универсал", group: "body" },
+    { id: "hatchback", label: "Хэтчбек", group: "body" },
+    { id: "liftback", label: "Лифтбек", group: "body" },
+    { id: "pickup", label: "Пикап", group: "body" },
+    { id: "minivan", label: "Минивэн", group: "body" },
+    { id: "cabrio", label: "Кабриолет", group: "body" },
+    { id: "crossover", label: "Кроссовер", group: "body" },
+    { id: "bus", label: "Автобус", group: "body" },
+    { id: "truck", label: "Грузовик", group: "body" },
+    { id: "moto", label: "Мотоцикл", group: "body" },
+    { id: "roadster", label: "Родстер", group: "body" },
+    { id: "targa", label: "Тарга", group: "body" },
+    { id: "muscle-car", label: "Масл-кар", group: "body" },
+    { id: "lowrider", label: "Лоурайдер", group: "body" },
+    { id: "van", label: "Фургон", group: "body" },
+    { id: "microvan", label: "Микровэн", group: "body" },
+    { id: "semi-truck", label: "Тягач", group: "body" },
+    { id: "dump-truck", label: "Самосвал", group: "body" },
+    { id: "tow-truck", label: "Эвакуатор", group: "body" },
+    { id: "fire-truck", label: "Пожарная машина", group: "body" },
+    { id: "ambulance", label: "Скорая помощь", group: "body" },
+    { id: "limousine", label: "Лимузин", group: "body" },
+    { id: "buggy", label: "Багги", group: "body" },
+    { id: "supercar", label: "Суперкар", group: "body" },
+    { id: "hypercar", label: "Гиперкар", group: "body" },
+
+    // Происхождение
+    { id: "otechestvenniy", label: "Отечественный", group: "origin" },
+    { id: "inomarka", label: "Иномарка", group: "origin" },
+    { id: "sovetskiy", label: "Советский", group: "origin" },
+    { id: "evropeyskiy", label: "Европейский", group: "origin" },
+    { id: "amerikanskiy", label: "Американский", group: "origin" },
+    { id: "aziatskiy", label: "Азиатский", group: "origin" },
+    { id: "nemetskiy", label: "Немецкий", group: "origin" },
+    { id: "yaponskiy", label: "Японский", group: "origin" },
+    { id: "koreyskiy", label: "Корейский", group: "origin" },
+    { id: "kitayskiy", label: "Китайский", group: "origin" },
+
+    // Эпоха
+    { id: "era-50s", label: "50-е", group: "era" },
+    { id: "era-60s", label: "60-е", group: "era" },
+    { id: "era-70s", label: "70-е", group: "era" },
+    { id: "era-80s", label: "80-е", group: "era" },
+    { id: "era-90s", label: "90-е", group: "era" },
+    { id: "era-2000s", label: "2000-е", group: "era" },
+    { id: "era-2010s", label: "2010-е", group: "era" },
+    { id: "era-2020s", label: "2020-е", group: "era" },
+
+    // Привод
+    { id: "fwd", label: "Передний привод", group: "drive" },
+    { id: "rwd", label: "Задний привод", group: "drive" },
+    { id: "awd", label: "Полный привод", group: "drive" },
+
+    // Особое
+    { id: "tuning", label: "Тюнинг", group: "special" },
+    { id: "limited", label: "Лимитка", group: "special" },
+    { id: "sport", label: "Спорт", group: "special" },
+    { id: "offroad", label: "Оффроуд", group: "special" },
+    { id: "stance", label: "Stance", group: "special" },
+    { id: "restomod", label: "Рестомод", group: "special" },
+    { id: "police", label: "Полиция", group: "special" },
+    { id: "event", label: "Ивентовый", group: "special" },
+    { id: "widebody", label: "Widebody", group: "special" },
+    { id: "lifted", label: "Лифтованный", group: "special" },
+    { id: "slammed", label: "Заниженный", group: "special" },
+    { id: "jdm", label: "JDM", group: "special" },
+    { id: "retro", label: "Ретро", group: "special" },
+    { id: "taxi", label: "Такси", group: "special" },
+    { id: "military", label: "Военный", group: "special" },
+    { id: "vip", label: "VIP", group: "special" },
+    { id: "drift", label: "Дрифт", group: "special" },
+    { id: "rally", label: "Ралли", group: "special" },
+    { id: "concept", label: "Концепт", group: "special" },
+    { id: "matte", label: "Матовый", group: "special" },
+    { id: "wrap", label: "Плёнка/Wrap", group: "special" },
+    { id: "service", label: "Спецтранспорт", group: "special" },
+    { id: "racing", label: "Гоночный", group: "special" },
+  ];
+
+  function hslToHex(h, s, l) {
+    s /= 100; l /= 100;
+    const k = (n) => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    const toHex = (x) => Math.round(255 * x).toString(16).padStart(2, "0");
+    return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
+  }
+
+  const GOLDEN_ANGLE = 137.508;
+  const TAGS = RAW_TAGS.map((tag, i) => ({
+    ...tag,
+    color: hslToHex((i * GOLDEN_ANGLE) % 360, 68, 58),
+  }));
+
+  const selectedTags = new Set();
+
+  /* ---------------------------------------------------------------------
+     Main / basic fields — DOM is the source of truth, we never rebuild
+     these input elements, so focus is never lost while typing.
+  --------------------------------------------------------------------- */
+
+  const categorySelect = document.getElementById("category");
+  const vehicleNameInput = document.getElementById("vehicleName");
+  const vehicleSlugInput = document.getElementById("vehicleSlug");
+  const jsPathPreview = document.getElementById("jsPathPreview");
+  const mainThumb = document.getElementById("mainThumb");
+  const mainFileInput = document.getElementById("mainFileInput");
+  const mainCropBtn = document.getElementById("mainCropBtn");
+  const mainRemoveBtn = document.getElementById("mainRemoveBtn");
+  const colorsList = document.getElementById("colorsList");
+  const addColorBtn = document.getElementById("addColorBtn");
+  const tagsGroupsEl = document.getElementById("tagsGroups");
+  const tagsSummaryEl = document.getElementById("tagsSummary");
+  const codeOutput = document.getElementById("codeOutput");
+  const tagsCodeOutput = document.getElementById("tagsCodeOutput");
+  const copyCodeBtn = document.getElementById("copyCodeBtn");
+  const copyTagsBtn = document.getElementById("copyTagsBtn");
+  const downloadJsBtn = document.getElementById("downloadJsBtn");
+  const downloadZipBtn = document.getElementById("downloadZipBtn");
+  const statusEl = document.getElementById("status");
+  const instructionsList = document.getElementById("instructionsList");
+
+  /* ---------------------------------------------------------------------
+     Tag chips rendering — grouped checkboxes styled like the site's chips.
+  --------------------------------------------------------------------- */
+
+  function updateTagsSummary() {
+    if (selectedTags.size === 0) {
+      tagsSummaryEl.textContent = "Теги не выбраны";
+      return;
+    }
+    const labels = TAGS.filter((t) => selectedTags.has(t.id)).map((t) => t.label);
+    tagsSummaryEl.textContent = `Выбрано (${labels.length}): ${labels.join(", ")}`;
+  }
+
+  function renderTagGroups() {
+    tagsGroupsEl.innerHTML = "";
+    TAG_GROUPS.forEach((group) => {
+      const groupTags = TAGS.filter((t) => t.group === group.id);
+      if (groupTags.length === 0) return;
+
+      const wrap = document.createElement("div");
+      wrap.className = "tag-group";
+
+      const title = document.createElement("div");
+      title.className = "tag-group-title";
+      title.textContent = group.label;
+      wrap.appendChild(title);
+
+      const chipsRow = document.createElement("div");
+      chipsRow.className = "tag-chips";
+
+      groupTags.forEach((tag) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "tag-chip";
+        chip.textContent = tag.label;
+        chip.style.setProperty("--tag-color", tag.color);
+        chip.style.setProperty("--tag-glow", tag.color + "4d");
+        chip.style.setProperty("--tag-glow-strong", tag.color + "66");
+        chip.setAttribute("aria-pressed", "false");
+
+        chip.addEventListener("click", () => {
+          const active = selectedTags.has(tag.id);
+          if (active) {
+            selectedTags.delete(tag.id);
+          } else {
+            selectedTags.add(tag.id);
+          }
+          chip.classList.toggle("active", !active);
+          chip.setAttribute("aria-pressed", String(!active));
+          updateTagsSummary();
+          scheduleUpdate();
+        });
+
+        chipsRow.appendChild(chip);
+      });
+
+      wrap.appendChild(chipsRow);
+      tagsGroupsEl.appendChild(wrap);
+    });
+  }
+
+  let slugManuallyEdited = false;
+
+  // main image state (blobs can't live in the DOM, so this is the one
+  // piece of real "state" we keep outside form elements)
+  const mainImage = { blob: null, url: null };
+
+  function currentSlug() {
+    return sanitizeSlug(vehicleSlugInput.value, "vehicle-slug");
+  }
+  function currentCategory() {
+    return categorySelect.value;
+  }
+
+  vehicleNameInput.addEventListener("input", () => {
+    // Only auto-fill slug if the user hasn't typed into the slug field
+    // themselves, and only if the slug field isn't currently focused.
+    if (!slugManuallyEdited && document.activeElement !== vehicleSlugInput) {
+      vehicleSlugInput.value = sanitizeSlug(vehicleNameInput.value, "");
+    }
+    scheduleUpdate();
+  });
+
+  vehicleSlugInput.addEventListener("input", () => {
+    slugManuallyEdited = true;
+    scheduleUpdate();
+  });
+  // Clean up the slug once the user leaves the field, without touching it
+  // while they're still typing (which would fight the cursor position).
+  vehicleSlugInput.addEventListener("blur", () => {
+    vehicleSlugInput.value = currentSlug();
+    scheduleUpdate();
+  });
+
+  categorySelect.addEventListener("change", scheduleUpdate);
+
+  /* ---------------------------------------------------------------------
+     Cropper (shared modal, works for the main photo and any color photo)
+  --------------------------------------------------------------------- */
+
+  const overlay = document.getElementById("cropperOverlay");
+  const cropCanvas = document.getElementById("cropperCanvas");
+  const cropCtx = cropCanvas.getContext("2d");
+  const cropRatioSelect = document.getElementById("cropRatioSelect");
+  const cropConfirmBtn = document.getElementById("cropConfirmBtn");
+  const cropCancelBtn = document.getElementById("cropCancelBtn");
+
+  const OUTPUT_SIZES = {
+    "4:3": { w: 800, h: 600 },
+    "16:9": { w: 800, h: 450 },
+    "1:1": { w: 700, h: 700 },
+  };
+
+  const MAX_W = 760, MAX_H = 480, HANDLE_SIZE = 14;
+  let cropImg = null, cropScale = 1, cropBox = null;
+  let cropDragMode = null, cropDragStart = null;
+  let onCropConfirmed = null; // callback(blob, previewUrl)
+
+  function cropCurrentRatio() {
+    const v = cropRatioSelect.value;
+    if (v === "free") return null;
+    const [w, h] = v.split(":").map(Number);
+    return w / h;
+  }
+
+  function initCropBox() {
+    const ratio = cropCurrentRatio();
+    let w, h;
+    if (ratio) {
+      if (cropCanvas.width / cropCanvas.height > ratio) {
+        h = cropCanvas.height * 0.85; w = h * ratio;
+      } else {
+        w = cropCanvas.width * 0.85; h = w / ratio;
+      }
+    } else {
+      w = cropCanvas.width * 0.85; h = cropCanvas.height * 0.85;
+    }
+    cropBox = { x: (cropCanvas.width - w) / 2, y: (cropCanvas.height - h) / 2, w, h };
+    clampCropBox();
+  }
+  function clampCropBox() {
+    cropBox.w = Math.min(cropBox.w, cropCanvas.width);
+    cropBox.h = Math.min(cropBox.h, cropCanvas.height);
+    cropBox.x = Math.max(0, Math.min(cropBox.x, cropCanvas.width - cropBox.w));
+    cropBox.y = Math.max(0, Math.min(cropBox.y, cropCanvas.height - cropBox.h));
+  }
+  function drawCrop() {
+    cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+    cropCtx.drawImage(cropImg, 0, 0, cropCanvas.width, cropCanvas.height);
+    cropCtx.fillStyle = "rgba(6,8,10,0.6)";
+    cropCtx.fillRect(0, 0, cropCanvas.width, cropBox.y);
+    cropCtx.fillRect(0, cropBox.y + cropBox.h, cropCanvas.width, cropCanvas.height - cropBox.y - cropBox.h);
+    cropCtx.fillRect(0, cropBox.y, cropBox.x, cropBox.h);
+    cropCtx.fillRect(cropBox.x + cropBox.w, cropBox.y, cropCanvas.width - cropBox.x - cropBox.w, cropBox.h);
+    cropCtx.strokeStyle = "#39c98f";
+    cropCtx.lineWidth = 2;
+    cropCtx.strokeRect(cropBox.x, cropBox.y, cropBox.w, cropBox.h);
+    cropCtx.fillStyle = "#39c98f";
+    cropCtx.fillRect(cropBox.x + cropBox.w - HANDLE_SIZE / 2, cropBox.y + cropBox.h - HANDLE_SIZE / 2, HANDLE_SIZE, HANDLE_SIZE);
+  }
+  function cropPointerPos(e) {
+    const rect = cropCanvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: (clientX - rect.left) * (cropCanvas.width / rect.width), y: (clientY - rect.top) * (cropCanvas.height / rect.height) };
+  }
+  function isOnCropHandle(pos) {
+    return pos.x >= cropBox.x + cropBox.w - HANDLE_SIZE && pos.x <= cropBox.x + cropBox.w + HANDLE_SIZE &&
+           pos.y >= cropBox.y + cropBox.h - HANDLE_SIZE && pos.y <= cropBox.y + cropBox.h + HANDLE_SIZE;
+  }
+  function isInsideCropBox(pos) {
+    return pos.x >= cropBox.x && pos.x <= cropBox.x + cropBox.w && pos.y >= cropBox.y && pos.y <= cropBox.y + cropBox.h;
+  }
+  function startCropDrag(e) {
+    if (!cropImg) return;
+    const pos = cropPointerPos(e);
+    if (isOnCropHandle(pos)) cropDragMode = "resize";
+    else if (isInsideCropBox(pos)) cropDragMode = "move";
+    else { cropDragMode = null; return; }
+    cropDragStart = { pos, box: { ...cropBox } };
+    e.preventDefault();
+  }
+  function duringCropDrag(e) {
+    if (!cropDragMode || !cropImg) return;
+    const pos = cropPointerPos(e);
+    const dx = pos.x - cropDragStart.pos.x, dy = pos.y - cropDragStart.pos.y;
+    if (cropDragMode === "move") {
+      cropBox.x = cropDragStart.box.x + dx;
+      cropBox.y = cropDragStart.box.y + dy;
+      clampCropBox();
+    } else if (cropDragMode === "resize") {
+      const ratio = cropCurrentRatio();
+      let newW = Math.max(24, cropDragStart.box.w + dx), newH;
+      if (ratio) newH = newW / ratio; else newH = Math.max(24, cropDragStart.box.h + dy);
+      newW = Math.min(newW, cropCanvas.width - cropBox.x);
+      newH = Math.min(newH, cropCanvas.height - cropBox.y);
+      if (ratio && newW / ratio > cropCanvas.height - cropBox.y) {
+        newH = cropCanvas.height - cropBox.y;
+        newW = newH * ratio;
+      }
+      cropBox.w = newW; cropBox.h = newH;
+    }
+    drawCrop();
+    e.preventDefault();
+  }
+  function endCropDrag() { cropDragMode = null; cropDragStart = null; }
+
+  cropCanvas.addEventListener("mousedown", startCropDrag);
+  window.addEventListener("mousemove", duringCropDrag);
+  window.addEventListener("mouseup", endCropDrag);
+  cropCanvas.addEventListener("touchstart", startCropDrag, { passive: false });
+  window.addEventListener("touchmove", duringCropDrag, { passive: false });
+  window.addEventListener("touchend", endCropDrag);
+
+  cropRatioSelect.addEventListener("change", () => {
+    if (!cropImg) return;
+    initCropBox();
+    drawCrop();
+  });
+
+  function openCropper(file, defaultRatio, callback) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const image = new Image();
+      image.onload = () => {
+        cropImg = image;
+        cropScale = Math.min(MAX_W / image.width, MAX_H / image.height, 1);
+        cropCanvas.width = Math.round(image.width * cropScale);
+        cropCanvas.height = Math.round(image.height * cropScale);
+        cropRatioSelect.value = defaultRatio;
+        onCropConfirmed = callback;
+        initCropBox();
+        drawCrop();
+        overlay.classList.add("open");
+      };
+      image.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  cropCancelBtn.addEventListener("click", () => {
+    overlay.classList.remove("open");
+    cropImg = null; onCropConfirmed = null;
+  });
+
+  cropConfirmBtn.addEventListener("click", () => {
+    if (!cropImg || !cropBox) return;
+    const sx = cropBox.x / cropScale, sy = cropBox.y / cropScale;
+    const sw = cropBox.w / cropScale, sh = cropBox.h / cropScale;
+    const ratioKey = cropRatioSelect.value;
+    const out = OUTPUT_SIZES[ratioKey] || { w: Math.round(sw), h: Math.round(sh) };
+    const outCanvas = document.createElement("canvas");
+    outCanvas.width = out.w; outCanvas.height = out.h;
+    const outCtx = outCanvas.getContext("2d");
+    outCtx.drawImage(cropImg, sx, sy, sw, sh, 0, 0, out.w, out.h);
+    outCanvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      if (onCropConfirmed) onCropConfirmed(blob, url);
+      overlay.classList.remove("open");
+      cropImg = null; onCropConfirmed = null;
+    }, "image/jpeg", 0.9);
+  });
+
+  /* ---------------------------------------------------------------------
+     Main photo slot
+  --------------------------------------------------------------------- */
+
+  function setMainThumb() {
+    mainThumb.innerHTML = "";
+    if (mainImage.url) {
+      const img = document.createElement("img");
+      img.src = mainImage.url;
+      mainThumb.appendChild(img);
+      mainCropBtn.disabled = false;
+      mainRemoveBtn.disabled = false;
+    } else {
+      const span = document.createElement("span");
+      span.className = "empty";
+      span.textContent = "нет фото";
+      mainThumb.appendChild(span);
+      mainCropBtn.disabled = true;
+      mainRemoveBtn.disabled = true;
+    }
+  }
+
+  mainFileInput.addEventListener("change", () => {
+    const file = mainFileInput.files[0];
+    if (!file) return;
+    openCropper(file, "4:3", (blob, url) => {
+      mainImage.blob = blob;
+      mainImage.url = url;
+      setMainThumb();
+      scheduleUpdate();
+    });
+  });
+  mainCropBtn.addEventListener("click", () => {
+    if (mainFileInput.files[0]) {
+      openCropper(mainFileInput.files[0], "4:3", (blob, url) => {
+        mainImage.blob = blob; mainImage.url = url; setMainThumb(); scheduleUpdate();
+      });
+    }
+  });
+  mainRemoveBtn.addEventListener("click", () => {
+    mainImage.blob = null; mainImage.url = null;
+    mainFileInput.value = "";
+    setMainThumb();
+    scheduleUpdate();
+  });
+
+  /* ---------------------------------------------------------------------
+     Colors — each row is created once and never rebuilt on keystroke.
+     Row state (id-manual flag, image blob) lives on the row element itself
+     via a small object stashed in a WeakMap-like property.
+  --------------------------------------------------------------------- */
+
+  const colorRows = []; // { el, uid, idManual, image: {blob, url} }
+
+  function makeColorRow() {
+    const uid = nextUid();
+    const el = document.createElement("div");
+    el.className = "color-row";
+    el.innerHTML = `
+      <div class="color-row-top">
+        <div class="field grow">
+          <label>Название цвета</label>
+          <input type="text" class="colorName" placeholder="Белый жемчуг" />
+        </div>
+        <div class="field">
+          <label>ID (латиницей)</label>
+          <input type="text" class="colorId" placeholder="white" />
+        </div>
+        <div class="checkbox-line">
+          <input type="checkbox" class="twoTone" />
+          <span>Двухцветная (комбо)</span>
+        </div>
+        <button type="button" class="danger tiny removeColorBtn">Удалить</button>
+      </div>
+      <div class="color-row-bottom">
+        <div class="field small">
+          <label>Hex 1</label>
+          <div class="swatch-pair">
+            <input type="color" class="colorPicker1" value="#8fb6d9" />
+            <input type="text" class="hex1" placeholder="#8FB6D9" style="flex:1;" />
+          </div>
+        </div>
+        <div class="field small hex2Wrap" style="display:none;">
+          <label>Hex 2</label>
+          <div class="swatch-pair">
+            <input type="color" class="colorPicker2" value="#000000" />
+            <input type="text" class="hex2" placeholder="#000000" style="flex:1;" />
+          </div>
+        </div>
+        <div class="field grow">
+          <label>Фото цвета в игре (необязательно)</label>
+          <div class="row" style="align-items:center; gap:10px;">
+            <div class="thumb colorThumb"><span class="empty">нет фото</span></div>
+            <input type="file" class="colorFileInput" accept="image/*" style="flex:1; min-width:150px;" />
+            <button type="button" class="secondary tiny colorCropBtn" disabled>Обрезать</button>
+            <button type="button" class="danger tiny colorRemoveImgBtn" disabled>Убрать</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const row = {
+      el, uid, idManual: false,
+      image: { blob: null, url: null },
+    };
+
+    const nameInput = el.querySelector(".colorName");
+    const idInput = el.querySelector(".colorId");
+    const twoToneCheckbox = el.querySelector(".twoTone");
+    const hex1Input = el.querySelector(".hex1");
+    const hex2Input = el.querySelector(".hex2");
+    const picker1 = el.querySelector(".colorPicker1");
+    const picker2 = el.querySelector(".colorPicker2");
+    const hex2Wrap = el.querySelector(".hex2Wrap");
+    const removeBtn = el.querySelector(".removeColorBtn");
+    const fileInput = el.querySelector(".colorFileInput");
+    const cropBtn = el.querySelector(".colorCropBtn");
+    const removeImgBtn = el.querySelector(".colorRemoveImgBtn");
+    const thumb = el.querySelector(".colorThumb");
+
+    function refreshThumb() {
+      thumb.innerHTML = "";
+      if (row.image.url) {
+        const img = document.createElement("img");
+        img.src = row.image.url;
+        thumb.appendChild(img);
+        cropBtn.disabled = false;
+        removeImgBtn.disabled = false;
+      } else {
+        const span = document.createElement("span");
+        span.className = "empty";
+        span.textContent = "нет фото";
+        thumb.appendChild(span);
+        cropBtn.disabled = true;
+        removeImgBtn.disabled = true;
+      }
+    }
+
+    nameInput.addEventListener("input", () => {
+      if (!row.idManual && document.activeElement !== idInput) {
+        idInput.value = sanitizeSlug(nameInput.value, "");
+      }
+      scheduleUpdate();
+    });
+    idInput.addEventListener("input", () => { row.idManual = true; scheduleUpdate(); });
+    idInput.addEventListener("blur", () => {
+      idInput.value = sanitizeSlug(idInput.value, "color");
+      scheduleUpdate();
+    });
+
+    twoToneCheckbox.addEventListener("change", () => {
+      hex2Wrap.style.display = twoToneCheckbox.checked ? "" : "none";
+      scheduleUpdate();
+    });
+
+    picker1.addEventListener("input", () => {
+      hex1Input.value = picker1.value.toUpperCase();
+      scheduleUpdate();
+    });
+    hex1Input.addEventListener("input", scheduleUpdate);
+    hex1Input.addEventListener("blur", () => {
+      const norm = normalizeHex(hex1Input.value);
+      hex1Input.value = norm;
+      if (/^#[0-9A-F]{6}$/.test(norm)) picker1.value = norm.toLowerCase();
+      scheduleUpdate();
+    });
+    picker2.addEventListener("input", () => {
+      hex2Input.value = picker2.value.toUpperCase();
+      scheduleUpdate();
+    });
+    hex2Input.addEventListener("input", scheduleUpdate);
+    hex2Input.addEventListener("blur", () => {
+      const norm = normalizeHex(hex2Input.value);
+      hex2Input.value = norm;
+      if (/^#[0-9A-F]{6}$/.test(norm)) picker2.value = norm.toLowerCase();
+      scheduleUpdate();
+    });
+
+    removeBtn.addEventListener("click", () => {
+      const idx = colorRows.indexOf(row);
+      if (idx !== -1) colorRows.splice(idx, 1);
+      el.remove();
+      scheduleUpdate();
+    });
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      openCropper(file, "16:9", (blob, url) => {
+        row.image.blob = blob; row.image.url = url; refreshThumb(); scheduleUpdate();
+      });
+    });
+    cropBtn.addEventListener("click", () => {
+      if (fileInput.files[0]) {
+        openCropper(fileInput.files[0], "16:9", (blob, url) => {
+          row.image.blob = blob; row.image.url = url; refreshThumb(); scheduleUpdate();
+        });
+      }
+    });
+    removeImgBtn.addEventListener("click", () => {
+      row.image.blob = null; row.image.url = null;
+      fileInput.value = "";
+      refreshThumb();
+      scheduleUpdate();
+    });
+
+    // expose for the code generator
+    row.getData = () => ({
+      name: nameInput.value.trim(),
+      id: sanitizeSlug(idInput.value, "color"),
+      twoTone: twoToneCheckbox.checked,
+      hex1: normalizeHex(hex1Input.value),
+      hex2: normalizeHex(hex2Input.value),
+      image: row.image,
+    });
+
+    refreshThumb();
+    return row;
+  }
+
+  function addColorRow() {
+    const row = makeColorRow();
+    colorRows.push(row);
+    colorsList.appendChild(row.el);
+    scheduleUpdate();
+    return row;
+  }
+
+  addColorBtn.addEventListener("click", () => addColorRow());
+
+  /* ---------------------------------------------------------------------
+     Output generation
+  --------------------------------------------------------------------- */
+
+  function imagePathFor(category, slug, fileName) {
+    return `/images/vehicles/${category}/${slug}/${fileName}.jpg`;
+  }
+
+  function buildOutputData() {
+    const category = currentCategory();
+    const slug = currentSlug();
+    const name = vehicleNameInput.value.trim() || slug;
+    const mainPath = mainImage.url ? imagePathFor(category, slug, "main") : "";
+
+    const colors = colorRows.map((row) => {
+      const d = row.getData();
+      const path = d.image.url ? imagePathFor(category, slug, d.id) : "";
+      return { ...d, path };
+    });
+
+    const tagIds = Array.from(selectedTags);
+
+    return { category, slug, name, mainPath, colors, tagIds };
+  }
+
+  function generateCode(data) {
+    const lines = [];
+    lines.push("export default {");
+    lines.push(`  slug: "${escapeJsString(data.slug)}",`);
+    lines.push(`  category: "${escapeJsString(data.category)}",`);
+    lines.push(`  name: "${escapeJsString(data.name)}",`);
+    lines.push(`  image: "${escapeJsString(data.mainPath)}",`);
+    lines.push("  colors: [");
+    data.colors.forEach((c) => {
+      const idStr = `id: "${escapeJsString(c.id)}"`;
+      const nameStr = `name: "${escapeJsString(c.name)}"`;
+      const hexStr = c.twoTone
+        ? `hexes: ["${escapeJsString(c.hex1 || "#000000")}", "${escapeJsString(c.hex2 || "#000000")}"]`
+        : `hex: "${escapeJsString(c.hex1 || "#000000")}"`;
+      const imageStr = `image: "${escapeJsString(c.path)}"`;
+      lines.push(`    { ${idStr}, ${nameStr}, ${hexStr}, ${imageStr} },`);
+    });
+    lines.push("  ],");
+    lines.push("};");
+    return lines.join("\n");
+  }
+
+  function generateTagsSnippet(data) {
+    if (data.tagIds.length === 0) {
+      return "// Теги не выбраны — можно пропустить этот шаг\n// или добавить их позже вручную в vehicleTags.js";
+    }
+    const idsStr = data.tagIds.map((id) => `"${escapeJsString(id)}"`).join(", ");
+    return `  "${escapeJsString(data.slug)}": [${idsStr}],`;
+  }
+
+  function generateInstructions(data) {
+    const camel = toCamelCase(data.slug);
+    const jsPath = `src/data/vehicles/${data.category}/${data.slug}.js`;
+    const imgFolder = `public/images/vehicles/${data.category}/${data.slug}/`;
+    const steps = [
+      `Скачай пакет (.zip) кнопкой ниже — внутри уже лежит файл <code>${jsPath}</code> и все обрезанные фото по правильным путям.`,
+      `Распакуй архив и перенеси файл данных в <code>${jsPath}</code> в своём проекте.`,
+      `Перенеси папку с фото в <code>${imgFolder}</code> (создай папки, если их ещё нет).`,
+      `Открой <code>src/data/vehicles/index.js</code> и добавь в начало импорт:<br><code>import ${camel} from "./${data.category}/${data.slug}";</code>`,
+      `В том же файле добавь <code>${camel}</code> в массив <code>vehicles</code> (внутри квадратных скобок, через запятую с остальными).`,
+    ];
+    if (data.tagIds.length > 0) {
+      steps.push(
+        `Открой <code>src/data/vehicleTags.js</code> и добавь строку тегов машины (скопируй кнопкой «Скопировать строку тегов» ниже) внутрь объекта <code>vehicleTags</code>.`
+      );
+    }
+    steps.push(`Сохрани и перезапусти <code>npm run dev</code> — машина появится в категории «${data.category}».`);
+    return steps;
+  }
+
+  function renderInstructions(items) {
+    instructionsList.innerHTML = "";
+    items.forEach((text) => {
+      const li = document.createElement("li");
+      li.innerHTML = text;
+      instructionsList.appendChild(li);
+    });
+  }
+
+  let updateScheduled = false;
+  function scheduleUpdate() {
+    if (updateScheduled) return;
+    updateScheduled = true;
+    requestAnimationFrame(() => {
+      updateScheduled = false;
+      runUpdate();
+    });
+  }
+
+  function runUpdate() {
+    const data = buildOutputData();
+    jsPathPreview.textContent = `src/data/vehicles/${data.category}/${data.slug}.js`;
+    codeOutput.value = generateCode(data);
+    tagsCodeOutput.value = generateTagsSnippet(data);
+    renderInstructions(generateInstructions(data));
+  }
+
+  /* ---------------------------------------------------------------------
+     Copy / download actions
+  --------------------------------------------------------------------- */
+
+  copyCodeBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(codeOutput.value);
+      statusEl.textContent = "Код скопирован";
+    } catch {
+      statusEl.textContent = "Не удалось скопировать — выдели текст вручную";
+    }
+    setTimeout(() => (statusEl.textContent = ""), 2000);
+  });
+
+  copyTagsBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(tagsCodeOutput.value);
+      statusEl.textContent = "Строка тегов скопирована";
+    } catch {
+      statusEl.textContent = "Не удалось скопировать — выдели текст вручную";
+    }
+    setTimeout(() => (statusEl.textContent = ""), 2000);
+  });
+
+  downloadJsBtn.addEventListener("click", () => {
+    const data = buildOutputData();
+    const blob = new Blob([codeOutput.value], { type: "text/javascript" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `${data.slug}.js`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+
+  downloadZipBtn.addEventListener("click", async () => {
+    if (typeof JSZip === "undefined") {
+      statusEl.textContent = "Не удалось загрузить архиватор (нужен интернет). Используй отдельные кнопки.";
+      return;
+    }
+    const data = buildOutputData();
+    const zip = new JSZip();
+
+    zip.file(`src/data/vehicles/${data.category}/${data.slug}.js`, generateCode(data));
+
+    if (data.tagIds.length > 0) {
+      zip.file("vehicleTags-snippet.txt", generateTagsSnippet(data));
+    }
+
+    if (mainImage.blob) {
+      zip.file(`public/images/vehicles/${data.category}/${data.slug}/main.jpg`, mainImage.blob);
+    }
+    data.colors.forEach((c) => {
+      if (c.image.blob) {
+        zip.file(`public/images/vehicles/${data.category}/${data.slug}/${c.id}.jpg`, c.image.blob);
+      }
+    });
+
+    const camel = toCamelCase(data.slug);
+    const instructionsLines = [
+      `Куда положить файлы`,
+      `====================`,
+      ``,
+      `1. src/data/vehicles/${data.category}/${data.slug}.js -> положи в свой проект по этому же пути.`,
+      `2. Папку public/images/vehicles/${data.category}/${data.slug}/ -> перенеси в public/images/vehicles/${data.category}/ своего проекта.`,
+      `3. Открой src/data/vehicles/index.js и добавь в начало файла:`,
+      `   import ${camel} from "./${data.category}/${data.slug}";`,
+      `4. В том же файле добавь ${camel} в массив vehicles.`,
+    ];
+    if (data.tagIds.length > 0) {
+      instructionsLines.push(
+        `5. Открой src/data/vehicleTags.js и вставь строку из vehicleTags-snippet.txt внутрь объекта vehicleTags.`,
+        `6. Сохрани и перезапусти npm run dev.`
+      );
+    } else {
+      instructionsLines.push(`5. Сохрани и перезапусти npm run dev.`);
+    }
+    zip.file("INSTRUCTIONS.txt", instructionsLines.join("\n"));
+
+    statusEl.textContent = "Собираю архив...";
+    const content = await zip.generateAsync({ type: "blob" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(content);
+    a.download = `${data.slug}-package.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    statusEl.textContent = "Архив скачан";
+    setTimeout(() => (statusEl.textContent = ""), 2500);
+  });
+
+  /* ---------------------------------------------------------------------
+     Online publish — upload photos to Cloudinary, insert the vehicle
+     record (with Cloudinary URLs) into a Supabase table. A local script
+     (scripts/pull-vehicles.mjs) later reads that table, downloads the
+     photos into public/images/..., and writes the real .js data file.
+  --------------------------------------------------------------------- */
+
+  const supabaseUrlInput = document.getElementById("supabaseUrl");
+  const supabaseAnonKeyInput = document.getElementById("supabaseAnonKey");
+  const cloudinaryCloudInput = document.getElementById("cloudinaryCloud");
+  const cloudinaryPresetInput = document.getElementById("cloudinaryPreset");
+  const saveConnectionBtn = document.getElementById("saveConnectionBtn");
+  const connectionStatus = document.getElementById("connectionStatus");
+  const publishBtn = document.getElementById("publishBtn");
+  const publishStatus = document.getElementById("publishStatus");
+
+  const CONNECTION_STORAGE_KEY = "osnova-constructor-connection";
+
+  function loadConnectionSettings() {
+    try {
+      const raw = localStorage.getItem(CONNECTION_STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      supabaseUrlInput.value = saved.supabaseUrl || "";
+      supabaseAnonKeyInput.value = saved.supabaseAnonKey || "";
+      cloudinaryCloudInput.value = saved.cloudinaryCloud || "";
+      cloudinaryPresetInput.value = saved.cloudinaryPreset || "";
+    } catch {
+      // повреждённые настройки — просто игнорируем
+    }
+  }
+
+  function currentConnectionSettings() {
+    return {
+      supabaseUrl: supabaseUrlInput.value.trim().replace(/\/+$/, ""),
+      supabaseAnonKey: supabaseAnonKeyInput.value.trim(),
+      cloudinaryCloud: cloudinaryCloudInput.value.trim(),
+      cloudinaryPreset: cloudinaryPresetInput.value.trim(),
+    };
+  }
+
+  saveConnectionBtn.addEventListener("click", () => {
+    localStorage.setItem(CONNECTION_STORAGE_KEY, JSON.stringify(currentConnectionSettings()));
+    connectionStatus.textContent = "Настройки сохранены в этом браузере";
+    setTimeout(() => (connectionStatus.textContent = ""), 2000);
+  });
+
+  async function uploadToCloudinary(blob, cfg) {
+    const form = new FormData();
+    form.append("file", blob);
+    form.append("upload_preset", cfg.cloudinaryPreset);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cfg.cloudinaryCloud}/image/upload`, {
+      method: "POST",
+      body: form,
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Cloudinary: ${res.status} ${text.slice(0, 200)}`);
+    }
+    const json = await res.json();
+    return json.secure_url;
+  }
+
+  async function publishVehicleOnline() {
+    const cfg = currentConnectionSettings();
+    if (!cfg.supabaseUrl || !cfg.supabaseAnonKey || !cfg.cloudinaryCloud || !cfg.cloudinaryPreset) {
+      publishStatus.textContent = "Заполни и сохрани настройки подключения выше";
+      publishStatus.style.color = "var(--danger)";
+      return;
+    }
+
+    const data = buildOutputData();
+    if (!data.slug) {
+      publishStatus.textContent = "Укажи slug машины";
+      publishStatus.style.color = "var(--danger)";
+      return;
+    }
+
+    publishBtn.disabled = true;
+    publishStatus.style.color = "var(--signal)";
+
+    try {
+      let mainUrl = "";
+      if (mainImage.blob) {
+        publishStatus.textContent = "Загружаю обложку в Cloudinary...";
+        mainUrl = await uploadToCloudinary(mainImage.blob, cfg);
+      }
+
+      const colors = [];
+      for (const row of colorRows) {
+        const d = row.getData();
+        let imageUrl = "";
+        if (d.image.blob) {
+          publishStatus.textContent = `Загружаю фото цвета "${d.name || d.id}"...`;
+          imageUrl = await uploadToCloudinary(d.image.blob, cfg);
+        }
+        colors.push({
+          id: d.id,
+          name: d.name,
+          twoTone: d.twoTone,
+          hex1: d.hex1 || "#000000",
+          hex2: d.hex2 || "#000000",
+          imageUrl,
+        });
+      }
+
+      const payload = {
+        slug: data.slug,
+        category: data.category,
+        name: data.name,
+        tagIds: data.tagIds,
+        mainImageUrl: mainUrl,
+        colors,
+      };
+
+      publishStatus.textContent = "Записываю в Supabase...";
+      const res = await fetch(`${cfg.supabaseUrl}/rest/v1/pending_vehicles`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: cfg.supabaseAnonKey,
+          Authorization: `Bearer ${cfg.supabaseAnonKey}`,
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify([
+          {
+            slug: data.slug,
+            category: data.category,
+            status: "pending",
+            data: payload,
+          },
+        ]),
+      });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`Supabase: ${res.status} ${text.slice(0, 300)}`);
+      }
+
+      publishStatus.style.color = "var(--signal)";
+      publishStatus.textContent = "Опубликовано! Запусти локально node scripts/pull-vehicles.mjs";
+    } catch (err) {
+      publishStatus.style.color = "var(--danger)";
+      publishStatus.textContent = "Ошибка: " + err.message;
+    } finally {
+      publishBtn.disabled = false;
+    }
+  }
+
+  publishBtn.addEventListener("click", publishVehicleOnline);
+  loadConnectionSettings();
+
+  /* ---------------------------------------------------------------------
+     Init
+  --------------------------------------------------------------------- */
+
+  setMainThumb();
+  addColorRow();
+  renderTagGroups();
+  updateTagsSummary();
+  scheduleUpdate();
+})();
+</script>
+</body>
+</html>
