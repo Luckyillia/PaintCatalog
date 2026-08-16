@@ -77,6 +77,7 @@ const rawTags = [
   { id: "geely", label: "Geely", group: "brand" },
   { id: "haval", label: "Haval", group: "brand" },
   { id: "byd", label: "BYD", group: "brand" },
+  { id: "hummer", label: "Hummer", group: "brand" },
 
   // Кузов
   { id: "sedan", label: "Седан", group: "body" },
