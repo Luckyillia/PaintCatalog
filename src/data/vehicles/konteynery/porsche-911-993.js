@@ -2,7 +2,7 @@ export default {
   slug: "porsche-911-993",
   category: "konteynery",
   name: "Porsche 911 (993)",
-  tags: ["porsche", "coupe", "inomarka"],
+  tags: ["inomarka", "evropeyskiy", "coupe", "rwd", "nemetskiy", "porsche", "era-90s", "retro"],
   image: "/images/vehicles/konteynery/porsche-911-993/main.jpg",
   colors: [
     { id: "riviera-blue", name: "Riviera Blue", hexes: ["#0C5992", "#01060C"], image: "/images/vehicles/konteynery/porsche-911-993/riviera-blue.jpg" },
