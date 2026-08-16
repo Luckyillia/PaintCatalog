@@ -19,6 +19,9 @@ import nissan400z from "./legkovoy/nissan-400z";
 import nissan200sx from "./legkovoy/nissan-200sx";
 import audiRs6C7 from "./legkovoy/audi-rs6-c7";
 import mercedesSClassW220 from "./legkovoy/mercedes-s-class-w220";
+import audiQ72013 from "./legkovoy/audi-q7-2013";
+import cadillacEscalade from "./legkovoy/cadillac-escalade";
+import subaruForedterSg9 from "./legkovoy/subaru-foredter-sg-9";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
@@ -38,6 +41,9 @@ export { categories, getCategory } from "../categories";
 export { tags, tagGroups, getTag, getTagColor } from "../tags";
 
 const rawVehicles = [
+  subaruForedterSg9,
+  cadillacEscalade,
+  audiQ72013,
   ferrari348Gtb,
   dodgeCharger10Years,
   hondaNsx,
