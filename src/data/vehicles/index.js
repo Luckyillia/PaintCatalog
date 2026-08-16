@@ -25,9 +25,6 @@ import subaruForesterSg9 from "./legkovoy/subaru-forester-sg-9";
 import chevroletSuburban from "./legkovoy/chevrolet-suburban";
 import lexusLfa from "./legkovoy/lexus-lfa";
 import mercedesC200W206 from "./legkovoy/mercedes-c200-w206";
-import moskvich2140 from "./legkovoy/moskvich-2140";
-import zaz968 from "./legkovoy/zaz-968";
-import vaz1111Oka from "./legkovoy/vaz-1111-oka";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
@@ -84,9 +81,6 @@ export const vehicles = [
   bmw850CsiKoenigSpecialsKs8,
   volkswagenJetta,
   porsche911RwbSlimer,
-  moskvich2140,
-  zaz968,
-  vaz1111Oka,
 ];
 
 export function getVehiclesByCategory(slug) {
