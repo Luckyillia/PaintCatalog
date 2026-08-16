@@ -38,6 +38,7 @@
 
 export const vehicleTags = {
   // legkovoy
+  "lexus-lfa": ["lexus", "coupe", "inomarka", "aziatskiy", "era-2010s", "rwd", "sport"],
   "volkswagen-jetta": ["volkswagen", "sedan", "inomarka"],
   "vaz-2108": ["vaz", "hatchback", "otechestvenniy", "sovetskiy"],
   "vaz-21011": ["vaz", "sedan", "otechestvenniy", "sovetskiy"],

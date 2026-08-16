@@ -23,6 +23,7 @@ import audiQ72013 from "./legkovoy/audi-q7-2013";
 import cadillacEscalade from "./legkovoy/cadillac-escalade";
 import subaruForedterSg9 from "./legkovoy/subaru-foredter-sg-9";
 import chevroletSuburban from "./legkovoy/chevrolet-suburban";
+import lexusLfa from "./legkovoy/lexus-lfa";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
@@ -42,6 +43,7 @@ export { categories, getCategory } from "../categories";
 export { tags, tagGroups, getTag, getTagColor } from "../tags";
 
 const rawVehicles = [
+  lexusLfa
   chevroletSuburban,
   subaruForedterSg9,
   cadillacEscalade,
