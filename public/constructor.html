@@ -170,34 +170,12 @@
     останется только разложить их по папкам проекта и добавить пару строк в один файл.
   </p>
 
-  <div class="panel" id="connectionPanel">
-    <h2>Подключение (один раз, хранится только в этом браузере)</h2>
-    <div class="row">
-      <div class="field grow">
-        <label for="supabaseUrl">Supabase URL</label>
-        <input type="text" id="supabaseUrl" placeholder="https://xxxx.supabase.co" />
-      </div>
-      <div class="field grow">
-        <label for="supabaseAnonKey">Supabase anon key</label>
-        <input type="text" id="supabaseAnonKey" placeholder="eyJhbGciOi..." />
-      </div>
-    </div>
-    <div class="row" style="margin-top:12px;">
-      <div class="field">
-        <label for="cloudinaryCloud">Cloudinary cloud name</label>
-        <input type="text" id="cloudinaryCloud" placeholder="my-cloud" />
-      </div>
-      <div class="field">
-        <label for="cloudinaryPreset">Cloudinary unsigned upload preset</label>
-        <input type="text" id="cloudinaryPreset" placeholder="osnova-unsigned" />
-      </div>
-      <button type="button" class="secondary" id="saveConnectionBtn">Сохранить настройки</button>
-      <span class="status" id="connectionStatus"></span>
-    </div>
+  <div class="panel" id="connectionPanel" style="display:none;">
+    <h2>Нет подключения</h2>
     <p class="hint">
-      Anon key и unsigned preset — публичные по своей природе (для того и созданы), но всё равно
-      ограничь их на стороне Supabase (RLS: только insert) и Cloudinary (preset: только этот проект),
-      чтобы через них нельзя было ничего кроме добавления новой машины.
+      Этот файл открыт напрямую, а не через страницу <code>/vehicle-constructor</code> сайта —
+      поэтому нет настроек Supabase/Cloudinary. Открой конструктор через сайт (там пароль,
+      а настройки приходят автоматически из <code>.env</code>).
     </p>
   </div>
 
@@ -1282,45 +1260,24 @@
      photos into public/images/..., and writes the real .js data file.
   --------------------------------------------------------------------- */
 
-  const supabaseUrlInput = document.getElementById("supabaseUrl");
-  const supabaseAnonKeyInput = document.getElementById("supabaseAnonKey");
-  const cloudinaryCloudInput = document.getElementById("cloudinaryCloud");
-  const cloudinaryPresetInput = document.getElementById("cloudinaryPreset");
-  const saveConnectionBtn = document.getElementById("saveConnectionBtn");
-  const connectionStatus = document.getElementById("connectionStatus");
   const publishBtn = document.getElementById("publishBtn");
   const publishStatus = document.getElementById("publishStatus");
 
-  const CONNECTION_STORAGE_KEY = "osnova-constructor-connection";
-
-  function loadConnectionSettings() {
-    try {
-      const raw = localStorage.getItem(CONNECTION_STORAGE_KEY);
-      if (!raw) return;
-      const saved = JSON.parse(raw);
-      supabaseUrlInput.value = saved.supabaseUrl || "";
-      supabaseAnonKeyInput.value = saved.supabaseAnonKey || "";
-      cloudinaryCloudInput.value = saved.cloudinaryCloud || "";
-      cloudinaryPresetInput.value = saved.cloudinaryPreset || "";
-    } catch {
-      // повреждённые настройки — просто игнорируем
-    }
-  }
+  // Настройки подключения приходят ТОЛЬКО через postMessage от родительской
+  // страницы /vehicle-constructor (см. обработчик message ниже, в конце
+  // файла) — она берёт их из .env сайта. Тут нет ни полей ввода, ни
+  // localStorage: если открыть этот файл напрямую, конструктор останется
+  // без подключения (см. панель "Нет подключения" выше).
+  let connectionSettings = {
+    supabaseUrl: "",
+    supabaseAnonKey: "",
+    cloudinaryCloud: "",
+    cloudinaryPreset: "",
+  };
 
   function currentConnectionSettings() {
-    return {
-      supabaseUrl: supabaseUrlInput.value.trim().replace(/\/+$/, ""),
-      supabaseAnonKey: supabaseAnonKeyInput.value.trim(),
-      cloudinaryCloud: cloudinaryCloudInput.value.trim(),
-      cloudinaryPreset: cloudinaryPresetInput.value.trim(),
-    };
+    return connectionSettings;
   }
-
-  saveConnectionBtn.addEventListener("click", () => {
-    localStorage.setItem(CONNECTION_STORAGE_KEY, JSON.stringify(currentConnectionSettings()));
-    connectionStatus.textContent = "Настройки сохранены в этом браузере";
-    setTimeout(() => (connectionStatus.textContent = ""), 2000);
-  });
 
   async function uploadToCloudinary(blob, cfg) {
     const form = new FormData();
@@ -1341,7 +1298,8 @@
   async function publishVehicleOnline() {
     const cfg = currentConnectionSettings();
     if (!cfg.supabaseUrl || !cfg.supabaseAnonKey || !cfg.cloudinaryCloud || !cfg.cloudinaryPreset) {
-      publishStatus.textContent = "Заполни и сохрани настройки подключения выше";
+      publishStatus.textContent =
+        "Нет настроек подключения — открой конструктор через /vehicle-constructor на сайте (не этот файл напрямую)";
       publishStatus.style.color = "var(--danger)";
       return;
     }
@@ -1425,29 +1383,29 @@
   }
 
   publishBtn.addEventListener("click", publishVehicleOnline);
-  loadConnectionSettings();
 
   /* ---------------------------------------------------------------------
      Приём настроек подключения от родительской страницы (React-обёртка
-     с паролем передаёт значения из .env через postMessage — так они
-     не хранятся вручную в этом файле). Если конструктор открыт напрямую
-     (не через /vehicle-constructor), это сообщение не придёт, и панель
-     "Подключение" останется как раньше — доступной для ручного ввода.
+     с паролем /vehicle-constructor передаёт значения из .env сайта через
+     postMessage). Если конструктор открыт напрямую (не в iframe этой
+     страницы) — сообщение никогда не придёт, connectionSettings останутся
+     пустыми, и публикация покажет понятную ошибку с подсказкой ниже.
   --------------------------------------------------------------------- */
   window.addEventListener("message", (event) => {
     const cfg = event.data;
     if (!cfg || cfg.type !== "osnova-constructor-config") return;
-    supabaseUrlInput.value = cfg.supabaseUrl || "";
-    supabaseAnonKeyInput.value = cfg.supabaseAnonKey || "";
-    cloudinaryCloudInput.value = cfg.cloudinaryCloud || "";
-    cloudinaryPresetInput.value = cfg.cloudinaryPreset || "";
-    const panel = document.getElementById("connectionPanel");
-    if (panel && cfg.supabaseUrl && cfg.cloudinaryCloud) {
-      panel.style.display = "none";
-    }
+    connectionSettings = {
+      supabaseUrl: (cfg.supabaseUrl || "").trim().replace(/\/+$/, ""),
+      supabaseAnonKey: (cfg.supabaseAnonKey || "").trim(),
+      cloudinaryCloud: (cfg.cloudinaryCloud || "").trim(),
+      cloudinaryPreset: (cfg.cloudinaryPreset || "").trim(),
+    };
   });
   if (window.parent && window.parent !== window) {
     window.parent.postMessage({ type: "osnova-constructor-ready" }, "*");
+  } else {
+    const panel = document.getElementById("connectionPanel");
+    if (panel) panel.style.display = "";
   }
 
   /* ---------------------------------------------------------------------
