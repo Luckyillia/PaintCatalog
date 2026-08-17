@@ -29,7 +29,7 @@ import hummerH2 from "./legkovoy/hummer-h2";
 import volkswagenPolo from "./legkovoy/volkswagen-polo";
 import maseratiGranturismo from "./legkovoy/maserati-granturismo";
 import bmwZ4 from "./legkovoy/bmw-z4";
-import nissanGtRR35 from "./Legkovoy/nissan-gt-r-r35";
+import nissanGtRR35 from "./legkovoy/nissan-gt-r-r35";
 import bmwM4F82 from "./legkovoy/bmw-m4-f82";
 
 // Sobytiya
