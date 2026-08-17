@@ -920,6 +920,24 @@
             <input type="text" class="hex2" placeholder="#000000" style="flex:1;" />
           </div>
         </div>
+        <div class="field small hex2Wrap" style="display:none;">
+          <label>Hex 2</label>
+          <div class="swatch-pair">
+            <input type="color" class="colorPicker2" value="#000000" />
+            <input type="text" class="hex2" placeholder="#000000" style="flex:1;" />
+          </div>
+        </div>
+        <div class="checkbox-line">
+          <input type="checkbox" class="hasAccent" />
+          <span>Цвет вставок</span>
+        </div>
+        <div class="field small accentWrap" style="display:none;">
+          <label>Hex вставок</label>
+          <div class="swatch-pair">
+            <input type="color" class="colorPickerAccent" value="#8fb6d9" />
+            <input type="text" class="hexAccent" placeholder="#8FB6D9" style="flex:1;" />
+          </div>
+        </div>
         <div class="field grow">
           <label>Фото цвета в игре (необязательно)</label>
           <div class="row" style="align-items:center; gap:10px;">
@@ -945,6 +963,10 @@
     const picker1 = el.querySelector(".colorPicker1");
     const picker2 = el.querySelector(".colorPicker2");
     const hex2Wrap = el.querySelector(".hex2Wrap");
+    const hasAccentCheckbox = el.querySelector(".hasAccent");
+    const accentWrap = el.querySelector(".accentWrap");
+    const hexAccentInput = el.querySelector(".hexAccent");
+    const pickerAccent = el.querySelector(".colorPickerAccent");
     const removeBtn = el.querySelector(".removeColorBtn");
     const fileInput = el.querySelector(".colorFileInput");
     const cropBtn = el.querySelector(".colorCropBtn");
@@ -986,6 +1008,11 @@
       scheduleUpdate();
     });
 
+    hasAccentCheckbox.addEventListener("change", () => {
+      accentWrap.style.display = hasAccentCheckbox.checked ? "" : "none";
+      scheduleUpdate();
+    });
+
     picker1.addEventListener("input", () => {
       hex1Input.value = picker1.value.toUpperCase();
       scheduleUpdate();
@@ -1006,6 +1033,25 @@
       const norm = normalizeHex(hex2Input.value);
       hex2Input.value = norm;
       if (/^#[0-9A-F]{6}$/.test(norm)) picker2.value = norm.toLowerCase();
+      scheduleUpdate();
+    });
+
+    hex2Input.addEventListener("blur", () => {
+      const norm = normalizeHex(hex2Input.value);
+      hex2Input.value = norm;
+      if (/^#[0-9A-F]{6}$/.test(norm)) picker2.value = norm.toLowerCase();
+      scheduleUpdate();
+    });
+
+    pickerAccent.addEventListener("input", () => {
+      hexAccentInput.value = pickerAccent.value.toUpperCase();
+      scheduleUpdate();
+    });
+    hexAccentInput.addEventListener("input", scheduleUpdate);
+    hexAccentInput.addEventListener("blur", () => {
+      const norm = normalizeHex(hexAccentInput.value);
+      hexAccentInput.value = norm;
+      if (/^#[0-9A-F]{6}$/.test(norm)) pickerAccent.value = norm.toLowerCase();
       scheduleUpdate();
     });
 
@@ -1044,6 +1090,8 @@
       twoTone: twoToneCheckbox.checked,
       hex1: normalizeHex(hex1Input.value),
       hex2: normalizeHex(hex2Input.value),
+      hasAccent: hasAccentCheckbox.checked,
+      accentHex: normalizeHex(hexAccentInput.value),
       image: row.image,
     });
 
@@ -1103,8 +1151,11 @@
       const hexStr = c.twoTone
         ? `hexes: ["${escapeJsString(c.hex1 || "#000000")}", "${escapeJsString(c.hex2 || "#000000")}"]`
         : `hex: "${escapeJsString(c.hex1 || "#000000")}"`;
+      const accentStr = c.hasAccent && c.accentHex
+        ? `, accentHex: "${escapeJsString(c.accentHex)}"`
+        : "";
       const imageStr = `image: "${escapeJsString(c.path)}"`;
-      lines.push(`    { ${idStr}, ${nameStr}, ${hexStr}, ${imageStr} },`);
+      lines.push(`    { ${idStr}, ${nameStr}, ${hexStr}${accentStr}, ${imageStr} },`);
     });
     lines.push("  ],");
     lines.push("};");
@@ -1326,6 +1377,8 @@
           twoTone: d.twoTone,
           hex1: d.hex1 || "#000000",
           hex2: d.hex2 || "#000000",
+          hasAccent: d.hasAccent,
+          accentHex: d.accentHex || "",
           imageUrl,
         });
       }

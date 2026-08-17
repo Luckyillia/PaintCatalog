@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getVehicle, getCategory, getColorHexes } from "../data/vehicles";
+import { getVehicle, getCategory, getColorHexes, getColorAccentHex } from "../data/vehicles";
 import Breadcrumbs from "../components/Breadcrumbs";
 import ColorChip from "../components/ColorChip";
 import CopyHex from "../components/CopyHex";
@@ -29,6 +29,7 @@ export default function VehicleDetail() {
   const activeColor =
     vehicle.colors.find((c) => c.id === activeId) ?? vehicle.colors[0];
   const activeHexes = getColorHexes(activeColor);
+  const activeAccentHex = getColorAccentHex(activeColor);
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-10">
@@ -63,6 +64,15 @@ export default function VehicleDetail() {
               {activeColor.name}
             </h2>
             <CopyHex hexes={activeHexes} />
+
+            {activeAccentHex && (
+              <div className="mt-4">
+                <span className="font-body text-xs uppercase tracking-[0.15em] text-mute mb-2 block">
+                  Цвет вставок
+                </span>
+                <CopyHex hexes={activeAccentHex} />
+              </div>
+            )}
           </div>
 
           <div>

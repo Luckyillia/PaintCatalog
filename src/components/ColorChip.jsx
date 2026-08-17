@@ -1,7 +1,8 @@
-import { getColorHexes } from "../data/vehicles";
+import { getColorHexes, getColorAccentHex } from "../data/vehicles";
 
 export default function ColorChip({ color, active, onClick }) {
   const hexes = getColorHexes(color);
+  const accentHex = getColorAccentHex(color);
   const background =
     hexes.length > 1
       ? `linear-gradient(135deg, ${hexes[0]} 50%, ${hexes[1]} 50%)`
@@ -16,9 +17,16 @@ export default function ColorChip({ color, active, onClick }) {
           : "border-hair hover:-translate-y-0.5 hover:border-mute"
       }`}
       aria-pressed={active}
-      aria-label={`${color.name} ${hexes.join(", ")}`}
+      aria-label={`${color.name} ${hexes.join(", ")}${accentHex ? `, вставки ${accentHex}` : ""}`}
     >
-      <span className="block h-14 rounded-t shadow-chip" style={{ background }} />
+      <span className="relative block h-14 rounded-t shadow-chip" style={{ background }}>
+        {accentHex && (
+          <span
+            className="absolute bottom-1.5 right-1.5 w-3.5 h-3.5 rounded-full border-2 border-white/70 shadow"
+            style={{ background: accentHex }}
+          />
+        )}
+      </span>
       <span className="block bg-raised2 rounded-b-sm px-1 py-1.5 text-center">
         <span className="block font-body text-[11px] text-ink leading-tight truncate">
           {color.name}

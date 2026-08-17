@@ -131,8 +131,11 @@ function generateVehicleFile(vehicle) {
     const hexStr = c.twoTone
       ? `hexes: ["${escapeJsString(c.hex1 || "#000000")}", "${escapeJsString(c.hex2 || "#000000")}"]`
       : `hex: "${escapeJsString(c.hex1 || "#000000")}"`;
+    const accentStr = c.hasAccent && c.accentHex
+      ? `, accentHex: "${escapeJsString(c.accentHex)}"`
+      : "";
     const imageStr = `image: "${escapeJsString(c.imagePath || "")}"`;
-    lines.push(`    { ${idStr}, ${nameStr}, ${hexStr}, ${imageStr} },`);
+    lines.push(`    { ${idStr}, ${nameStr}, ${hexStr}${accentStr}, ${imageStr} },`);
   }
   lines.push("  ],");
   lines.push("};");

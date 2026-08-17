@@ -125,3 +125,9 @@ export function getUsedTagIds(list) {
 export function getColorHexes(color) {
   return color.hexes ?? [color.hex];
 }
+
+// Необязательный третий цвет — вставки/акценты (например у мото).
+// Если не задан — null.
+export function getColorAccentHex(color) {
+  return color.accentHex ?? null;
+}
