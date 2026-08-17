@@ -42,8 +42,10 @@ import porsche911993 from "./konteynery/porsche-911-993";
 import ferrari348Gtb from "./konteynery/ferrari-348-gtb";
 
 // Moto
+import suzukiHayabusa from "./moto/suzuki-hayabusa";
 
 import { tags } from "../tags";
+
 
 export { categories, getCategory } from "../categories";
 export { tags, tagGroups, getTag, getTagColor } from "../tags";
@@ -89,6 +91,7 @@ export const vehicles = [
   bmw850CsiKoenigSpecialsKs8,
   volkswagenJetta,
   porsche911RwbSlimer,
+  suzukiHayabusa,
 ];
 
 export function getVehiclesByCategory(slug) {
