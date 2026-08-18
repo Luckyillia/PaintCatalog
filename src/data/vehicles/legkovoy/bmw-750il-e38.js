@@ -1,0 +1,23 @@
+export default {
+  slug: "bmw-750il-e38",
+  category: "legkovoy",
+  name: "BMW 750iL (e38)",
+  tags: ["bmw", "sedan", "inomarka", "evropeyskiy", "nemetskiy", "era-90s", "era-2000s", "rwd"],
+  image: "/images/vehicles/legkovoy/bmw-750il-e38/main.jpg",
+  colors: [
+    { id: "royalrot-metallic", name: "Royalrot Metallic", hexes: ["#240606", "#100300"], image: "/images/vehicles/legkovoy/bmw-750il-e38/royalrot-metallic.jpg" },
+    { id: "canyonrot-metallic", name: "Canyonrot Metallic", hexes: ["#2B0D0D", "#080202"], image: "/images/vehicles/legkovoy/bmw-750il-e38/canyonrot-metallic.jpg" },
+    { id: "imolarot-2", name: "Imolarot 2", hexes: ["#630B0B", "#000000"], image: "/images/vehicles/legkovoy/bmw-750il-e38/imolarot-2.jpg" },
+    { id: "brokatrot-metallic", name: "Brokatrot Metallic", hexes: ["#220E0E", "#080202"], image: "/images/vehicles/legkovoy/bmw-750il-e38/brokatrot-metallic.jpg" },
+    { id: "ascotgruen-metallic", name: "Ascotgruen Metallic", hexes: ["#182A2A", "#060C0C"], image: "/images/vehicles/legkovoy/bmw-750il-e38/ascotgruen-metallic.jpg" },
+    { id: "vermontgruen-metallic", name: "Vermontgruen Metallic", hexes: ["#092320", "#040806"], image: "/images/vehicles/legkovoy/bmw-750il-e38/vermontgruen-metallic.jpg" },
+    { id: "oxfordgruen-metallic", name: "Oxfordgruen Metallic", hexes: ["#0B1313", "#060A0A"], image: "/images/vehicles/legkovoy/bmw-750il-e38/oxfordgruen-metallic.jpg" },
+    { id: "orinoco-metallic", name: "Orinoco Metallic", hexes: ["#1B2426", "#000000"], image: "/images/vehicles/legkovoy/bmw-750il-e38/orinoco-metallic.jpg" },
+    { id: "saharabeige-metallic", name: "Saharabeige Metallic", hexes: ["#564F41", "#000000"], image: "/images/vehicles/legkovoy/bmw-750il-e38/saharabeige-metallic.jpg" },
+    { id: "pearlbeige-metallic", name: "Pearlbeige Metallic", hexes: ["#807357", "#000000"], image: "/images/vehicles/legkovoy/bmw-750il-e38/pearlbeige-metallic.jpg" },
+    { id: "mojavebraun-metallic", name: "Mojavebraun Metallic", hexes: ["#231F18", "#131210"], image: "/images/vehicles/legkovoy/bmw-750il-e38/mojavebraun-metallic.jpg" },
+    { id: "sorrentblau-metallic", name: "Sorrentblau Metallic", hexes: ["#07112B", "#020605"], image: "/images/vehicles/legkovoy/bmw-750il-e38/sorrentblau-metallic.jpg" },
+    { id: "glaciergruen-metallic", name: "Glaciergruen Metallic", hexes: ["#525F64", "#040707"], image: "/images/vehicles/legkovoy/bmw-750il-e38/glaciergruen-metallic.jpg" },
+    { id: "navarraviolet-metallic", name: "Navarraviolet Metallic", hexes: ["#271A21", "#0E080F"], image: "/images/vehicles/legkovoy/bmw-750il-e38/navarraviolet-metallic.jpg" },
+  ],
+};
