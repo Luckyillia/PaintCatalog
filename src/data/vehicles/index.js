@@ -32,6 +32,9 @@ import bmwZ4 from "./legkovoy/bmw-z4";
 import nissanGtRR35 from "./legkovoy/nissan-gt-r-r35";
 import bmwM4F82 from "./legkovoy/bmw-m4-f82";
 import bmw750ilE38 from "./legkovoy/bmw-750il-e38";
+import bmw535iE34 from "./legkovoy/bmw-535i-e34";
+import li9 from "./legkovoy/li-9";
+import bmwX5mF85 from "./legkovoy/bmw-x5m-f85";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
@@ -98,6 +101,9 @@ export const vehicles = [
   nissanGtRR35,
   bmwM4F82,
   bmw750ilE38,
+  bmw535iE34,
+  li9,
+  bmwX5mF85,
 ];
 
 export function getVehiclesByCategory(slug) {
