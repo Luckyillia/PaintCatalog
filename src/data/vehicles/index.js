@@ -35,6 +35,7 @@ import bmw750ilE38 from "./legkovoy/bmw-750il-e38";
 import bmw535iE34 from "./legkovoy/bmw-535i-e34";
 import li9 from "./legkovoy/li-9";
 import bmwX5mF85 from "./legkovoy/bmw-x5m-f85";
+import volkswagenGolf6 from "./legkovoy/Volkswagen Golf 6";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
@@ -104,6 +105,7 @@ export const vehicles = [
   bmw535iE34,
   li9,
   bmwX5mF85,
+  volkswagenGolf6,
 ];
 
 export function getVehiclesByCategory(slug) {
