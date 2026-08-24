@@ -36,6 +36,13 @@ import bmw535iE34 from "./legkovoy/bmw-535i-e34";
 import li9 from "./legkovoy/li-9";
 import bmwX5mF85 from "./legkovoy/bmw-x5m-f85";
 import volkswagenGolf6 from "./legkovoy/Volkswagen Golf 6";
+import dodgeChallengerSrtHellcat from "./legkovoy/dodge-challenger-srt-hellcat";
+import bmwM5F10 from "./legkovoy/bmw-m5-f10";
+import aurusSenat from "./legkovoy/aurus-senat";
+import bmwX5F95 from "./legkovoy/bmw-x5-f95";
+import audiS4B8 from "./legkovoy/audi-s4-b8";
+import mercedesCls63Restayling from "./legkovoy/mercedes-cls63-restayling";
+import ladaGranta from "./legkovoy/lada-granta";
 
 // Sobytiya
 import bmw850CsiKoenigSpecialsKs8 from "./sobytiya/bmw-850-csi-koenig-specials-ks8";
@@ -106,6 +113,13 @@ export const vehicles = [
   li9,
   bmwX5mF85,
   volkswagenGolf6,
+  dodgeChallengerSrtHellcat,
+  bmwM5F10,
+  aurusSenat,
+  bmwX5F95,
+  audiS4B8,
+  mercedesCls63Restayling,
+  ladaGranta,
 ];
 
 export function getVehiclesByCategory(slug) {
