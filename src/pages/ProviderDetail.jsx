@@ -1,13 +1,49 @@
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getProviderById, getProviderNote } from "../data/credits";
+import { fetchProviderById, getProviderNote } from "../data/credits";
 import { getVehicle } from "../data/vehicles";
 import Breadcrumbs from "../components/Breadcrumbs";
 import VehicleCard from "../components/VehicleCard";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Loader2 } from "lucide-react";
 
 export default function ProviderDetail() {
   const { id } = useParams();
-  const provider = getProviderById(id);
+  // undefined = ещё грузится, null = загрузили и не нашли
+  const [provider, setProvider] = useState(undefined);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    setProvider(undefined);
+    setError("");
+    fetchProviderById(id)
+      .then((data) => {
+        if (!cancelled) setProvider(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto px-5 py-10">
+        <p className="font-body text-amber">Ошибка загрузки: {error}</p>
+      </div>
+    );
+  }
+
+  if (provider === undefined) {
+    return (
+      <div className="max-w-6xl mx-auto px-5 py-10 flex items-center gap-2 font-body text-sm text-mute">
+        <Loader2 size={16} className="animate-spin" />
+        Загружаю...
+      </div>
+    );
+  }
 
   if (!provider) {
     return (

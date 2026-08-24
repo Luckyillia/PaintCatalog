@@ -1,9 +1,27 @@
-import { creditGroups } from "../data/credits";
+import { useEffect, useState } from "react";
+import { fetchCreditGroups } from "../data/credits";
 import Breadcrumbs from "../components/Breadcrumbs";
 import CreditCard from "../components/CreditCard";
-import { Award } from "lucide-react";
+import { Award, Loader2 } from "lucide-react";
 
 export default function CreditsWall() {
+  const [groups, setGroups] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchCreditGroups()
+      .then((data) => {
+        if (!cancelled) setGroups(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div className="max-w-6xl mx-auto px-5 py-10">
       <Breadcrumbs
@@ -26,24 +44,41 @@ export default function CreditsWall() {
         </p>
       </section>
 
-      <div className="flex flex-col gap-10">
-        {creditGroups.map((group) => (
-          <div key={group.id}>
-            <h2 className="font-display text-2xl tracking-wide text-ink mb-4 flex items-center gap-3">
-              {group.title}
-              <span className="flex-1 h-px bg-hair" />
-              <span className="font-mono text-xs text-mute">
-                {group.entries.length}
-              </span>
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {group.entries.map((entry, i) => (
-                <CreditCard key={`${group.id}-${i}`} entry={entry} />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+      {error && (
+        <p className="font-body text-sm text-amber mb-6">
+          Не удалось загрузить стену почёта: {error}
+        </p>
+      )}
+
+      {!error && !groups && (
+        <div className="flex items-center gap-2 font-body text-sm text-mute">
+          <Loader2 size={16} className="animate-spin" />
+          Загружаю...
+        </div>
+      )}
+
+      {groups && (
+        <div className="flex flex-col gap-10">
+          {groups
+            .filter((group) => group.entries.length > 0)
+            .map((group) => (
+              <div key={group.id}>
+                <h2 className="font-display text-2xl tracking-wide text-ink mb-4 flex items-center gap-3">
+                  {group.title}
+                  <span className="flex-1 h-px bg-hair" />
+                  <span className="font-mono text-xs text-mute">
+                    {group.entries.length}
+                  </span>
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {group.entries.map((entry) => (
+                    <CreditCard key={entry.id} entry={entry} />
+                  ))}
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
     </div>
   );
 }

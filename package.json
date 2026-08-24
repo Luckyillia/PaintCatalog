@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "pull-vehicles": "node scripts/pull-vehicles.mjs"
+    "pull-vehicles": "node scripts/pull-vehicles.mjs",
+    "migrate-credits": "node scripts/migrate-credits.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.25.0",

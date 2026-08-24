@@ -6,12 +6,14 @@ import VehicleDetail from "./pages/VehicleDetail";
 import CreditsWall from "./pages/CreditsWall";
 import ProviderDetail from "./pages/ProviderDetail";
 import Constructor from "./pages/Constructor";
+import CreditsConstructor from "./pages/CreditsConstructor";
 
 export default function App() {
   return (
     <Routes>
-      {/* Конструктор — отдельный полноэкранный роут, без шапки сайта */}
+      {/* Конструкторы — отдельные полноэкранные роуты, без шапки сайта */}
       <Route path="/vehicle-constructor" element={<Constructor />} />
+      <Route path="/credits-constructor" element={<CreditsConstructor />} />
 
       <Route
         path="*"
