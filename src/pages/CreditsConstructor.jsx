@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   fetchCreditGroups,
   createGroup,
@@ -8,7 +8,7 @@ import {
   updateEntry,
   deleteEntry,
 } from "../data/credits";
-import { getVehicle } from "../data/vehicles";
+import { getVehicle, vehicles } from "../data/vehicles";
 import { Plus, Trash2, ChevronUp, ChevronDown, Pencil, X, Check } from "lucide-react";
 
 // Тот же пароль/хэш, что у /vehicle-constructor (VITE_CONSTRUCTOR_PASSWORD_HASH
@@ -64,28 +64,176 @@ function formToEntryPatch(form, groupId, sortOrder) {
   };
 }
 
-function VehicleSlugsPreview({ text }) {
-  const slugs = text
+// Приводит произвольный ввод к тому же формату slug, что и остальной
+// сайт (латиница, дефисы) — используется для "будущих" машин, которых
+// ещё нет в реестре src/data/vehicles.
+function sanitizeSlugInput(value) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+// Выбор машин для профиля владельца гаража: можно найти и выбрать уже
+// существующую машину из реестра сайта (src/data/vehicles), а можно
+// вписать slug машины, которой на сайте ещё нет — она появится жёлтым
+// чипом с пометкой "ещё нет на сайте", а привязка подхватится сама,
+// как только машину с таким же slug добавят в реестр.
+function VehicleSlugsPicker({ value, onChange }) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [customSlug, setCustomSlug] = useState("");
+  const wrapRef = useRef(null);
+
+  const selectedSlugs = value
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
-  if (slugs.length === 0) return null;
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const q = query.trim().toLowerCase();
+  const suggestions = vehicles
+    .filter((v) => !selectedSlugs.includes(v.slug))
+    .filter(
+      (v) =>
+        !q ||
+        v.name.toLowerCase().includes(q) ||
+        v.slug.toLowerCase().includes(q)
+    )
+    .slice(0, 8);
+
+  function commitSlugs(nextSlugs) {
+    onChange(nextSlugs.join(", "));
+  }
+
+  function addSlug(slug) {
+    if (!slug || selectedSlugs.includes(slug)) return;
+    commitSlugs([...selectedSlugs, slug]);
+  }
+
+  function removeSlug(slug) {
+    commitSlugs(selectedSlugs.filter((s) => s !== slug));
+  }
+
+  function addCustom() {
+    const clean = sanitizeSlugInput(customSlug);
+    if (!clean) return;
+    addSlug(clean);
+    setCustomSlug("");
+  }
+
   return (
-    <div className="flex flex-wrap gap-1.5 mt-1.5">
-      {slugs.map((slug) => {
-        const vehicle = getVehicle(slug);
-        return (
-          <span
-            key={slug}
-            className={`font-mono text-[11px] px-2 py-0.5 rounded border ${
-              vehicle ? "border-signal/40 text-signal" : "border-amber/50 text-amber"
-            }`}
-            title={vehicle ? vehicle.name : "Такого slug нет в реестре машин"}
-          >
-            {slug}
-          </span>
-        );
-      })}
+    <div ref={wrapRef}>
+      {/* выбранные машины */}
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {selectedSlugs.length === 0 && (
+          <span className="font-body text-xs text-mute">Машины не выбраны</span>
+        )}
+        {selectedSlugs.map((slug) => {
+          const vehicle = getVehicle(slug);
+          return (
+            <span
+              key={slug}
+              className={`flex items-center gap-1.5 font-mono text-[11px] pl-2 pr-1 py-1 rounded border ${
+                vehicle
+                  ? "border-signal/40 text-signal"
+                  : "border-amber/50 text-amber"
+              }`}
+              title={vehicle ? vehicle.name : "Ещё нет на сайте — появится, когда добавишь машину с этим slug"}
+            >
+              {vehicle ? vehicle.name : `${slug} (скоро на сайте)`}
+              <button
+                type="button"
+                onClick={() => removeSlug(slug)}
+                className="hover:text-ink"
+              >
+                <X size={11} />
+              </button>
+            </span>
+          );
+        })}
+      </div>
+
+      {/* поиск по существующим машинам */}
+      <div className="relative">
+        <input
+          value={query}
+          onFocus={() => setOpen(true)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          placeholder="Найти машину по названию или slug..."
+          className="w-full bg-raised border border-hair rounded px-3 py-2 font-body text-sm text-ink focus:outline-none focus:border-signal/50"
+        />
+        {open && suggestions.length > 0 && (
+          <div className="absolute left-0 right-0 top-full mt-1 max-h-56 overflow-y-auto rounded-md border border-hair bg-raised shadow-lg z-30 p-1 chip-scroll">
+            {suggestions.map((v) => (
+              <button
+                key={v.slug}
+                type="button"
+                onClick={() => {
+                  addSlug(v.slug);
+                  setQuery("");
+                  setOpen(false);
+                }}
+                className="w-full flex items-center justify-between gap-2 rounded px-2 py-1.5 hover:bg-raised2 transition-colors text-left"
+              >
+                <span className="font-body text-sm text-ink truncate">{v.name}</span>
+                <span className="font-mono text-[10px] text-mute shrink-0 ml-2">{v.slug}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {open && q && suggestions.length === 0 && (
+          <div className="absolute left-0 right-0 top-full mt-1 rounded-md border border-hair bg-raised shadow-lg z-30 p-3">
+            <p className="font-body text-xs text-mute">
+              Такой машины нет в реестре. Впиши её slug ниже — как "будущую".
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* slug машины, которой ещё нет на сайте */}
+      <div className="flex items-center gap-2 mt-2">
+        <input
+          value={customSlug}
+          onChange={(e) => setCustomSlug(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              addCustom();
+            }
+          }}
+          placeholder="slug машины, которой ещё нет на сайте (например zaz-968)"
+          className="flex-1 bg-raised border border-hair rounded px-3 py-2 font-mono text-sm text-ink focus:outline-none focus:border-signal/50"
+        />
+        <button
+          type="button"
+          onClick={addCustom}
+          disabled={!customSlug.trim()}
+          className="shrink-0 flex items-center gap-1 rounded-md border border-hair bg-raised2 text-ink font-body text-xs px-3 py-2 hover:border-signal/50 transition-colors disabled:opacity-40"
+        >
+          <Plus size={13} />
+          Добавить
+        </button>
+      </div>
+      <p className="font-body text-[11px] text-mute mt-1.5 leading-snug">
+        Жёлтые чипы — машины, которых пока нет на сайте. Когда добавишь машину
+        с точно таким же slug в реестр (src/data/vehicles), привязка сама
+        подтянет её название и станет зелёной — ничего здесь менять не надо.
+      </p>
     </div>
   );
 }
@@ -169,15 +317,12 @@ function EntryForm({ initial, onSave, onCancel, saving }) {
 
       <div>
         <label className="font-body text-xs uppercase tracking-[0.1em] text-mute mb-1 block">
-          Vehicle slugs (через запятую)
+          Машины
         </label>
-        <input
+        <VehicleSlugsPicker
           value={form.vehicleSlugsText}
-          onChange={(e) => set("vehicleSlugsText", e.target.value)}
-          placeholder="porsche-911-993, honda-nsx"
-          className="w-full bg-raised border border-hair rounded px-3 py-2 font-mono text-sm text-ink focus:outline-none focus:border-signal/50"
+          onChange={(text) => set("vehicleSlugsText", text)}
         />
-        <VehicleSlugsPreview text={form.vehicleSlugsText} />
       </div>
 
       <div className="flex items-center gap-2 mt-1">
