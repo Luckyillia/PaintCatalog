@@ -76,6 +76,29 @@ function sanitizeSlugInput(value) {
     .replace(/^-|-$/g, "");
 }
 
+// Транслитерация для providerId — имя может быть на кириллице
+// ("Астватсатур"), а providerId всегда должен быть латиницей в нижнем
+// регистре (используется в URL /provider/:id).
+const TRANSLIT_MAP = {
+  а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "e", ж: "zh", з: "z", и: "i",
+  й: "y", к: "k", л: "l", м: "m", н: "n", о: "o", п: "p", р: "r", с: "s", т: "t",
+  у: "u", ф: "f", х: "h", ц: "ts", ч: "ch", ш: "sh", щ: "sch", ъ: "", ы: "y", ь: "",
+  э: "e", ю: "yu", я: "ya",
+};
+function transliterateStr(str) {
+  return (str || "")
+    .toLowerCase()
+    .split("")
+    .map((c) => (TRANSLIT_MAP[c] !== undefined ? TRANSLIT_MAP[c] : c))
+    .join("");
+}
+// Ник -> providerId: только строчные латинские буквы, цифры и дефисы.
+function slugifyProviderId(value) {
+  return transliterateStr(value)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 // Выбор машин для профиля владельца гаража: можно найти и выбрать уже
 // существующую машину из реестра сайта (src/data/vehicles), а можно
 // вписать slug машины, которой на сайте ещё нет — она появится жёлтым
@@ -240,9 +263,31 @@ function VehicleSlugsPicker({ value, onChange }) {
 
 function EntryForm({ initial, onSave, onCancel, saving }) {
   const [form, setForm] = useState(initial);
+  // Если providerId уже был задан (редактируем существующую запись) —
+  // считаем его "ручным" и не трогаем автогенерацией. Для новой записи
+  // providerId подставляется из имени, пока пользователь не впишет его
+  // сам — тогда автогенерация выключается насовсем для этой формы.
+  const [providerIdManual, setProviderIdManual] = useState(Boolean(initial.providerId));
 
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
+  }
+
+  function handleNameChange(value) {
+    setForm((f) => ({
+      ...f,
+      name: value,
+      providerId: providerIdManual ? f.providerId : slugifyProviderId(value),
+    }));
+  }
+
+  function handleProviderIdChange(value) {
+    setProviderIdManual(true);
+    set("providerId", value);
+  }
+
+  function handleProviderIdBlur() {
+    set("providerId", slugifyProviderId(form.providerId));
   }
 
   return (
@@ -254,7 +299,7 @@ function EntryForm({ initial, onSave, onCancel, saving }) {
           </label>
           <input
             value={form.name}
-            onChange={(e) => set("name", e.target.value)}
+            onChange={(e) => handleNameChange(e.target.value)}
             className="w-full bg-raised border border-hair rounded px-3 py-2 font-body text-sm text-ink focus:outline-none focus:border-signal/50"
           />
         </div>
@@ -306,13 +351,17 @@ function EntryForm({ initial, onSave, onCancel, saving }) {
 
       <div>
         <label className="font-body text-xs uppercase tracking-[0.1em] text-mute mb-1 block">
-          Provider ID (для страницы /provider/:id — оставь пустым, если не нужна)
+          Provider ID (для страницы /provider/:id)
         </label>
         <input
           value={form.providerId}
-          onChange={(e) => set("providerId", e.target.value)}
+          onChange={(e) => handleProviderIdChange(e.target.value)}
+          onBlur={handleProviderIdBlur}
           className="w-full bg-raised border border-hair rounded px-3 py-2 font-mono text-sm text-ink focus:outline-none focus:border-signal/50"
         />
+        <p className="font-body text-[11px] text-mute mt-1">
+          Подставляется из имени автоматически (только строчные латинские буквы и дефисы) — можно поправить вручную, оставь пустым, если страница профиля не нужна.
+        </p>
       </div>
 
       <div>
