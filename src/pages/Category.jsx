@@ -1,21 +1,23 @@
 import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getCategory, getVehiclesByCategory, getVehiclesByTags, getUsedTagIds } from "../data/vehicles";
+import { useVehiclesContext } from "../context/VehiclesContext";
 import Breadcrumbs from "../components/Breadcrumbs";
 import VehicleCard from "../components/VehicleCard";
 import TagFilterBar from "../components/TagFilterBar";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 
 export default function Category() {
   const { slug } = useParams();
   const category = getCategory(slug);
-  const allVehicles = getVehiclesByCategory(slug);
+  const { vehicles, loading, error } = useVehiclesContext();
+  const allVehicles = useMemo(() => getVehiclesByCategory(vehicles, slug), [vehicles, slug]);
   const [selectedTags, setSelectedTags] = useState([]);
   const [query, setQuery] = useState("");
 
   const availableTagIds = useMemo(() => getUsedTagIds(allVehicles), [allVehicles]);
 
-  const vehicles = useMemo(() => {
+  const vehiclesFiltered = useMemo(() => {
     let list = getVehiclesByTags(allVehicles, selectedTags);
 
     const q = query.trim().toLowerCase();
@@ -69,17 +71,26 @@ export default function Category() {
         onClear={() => setSelectedTags([])}
       />
 
-      {allVehicles.length === 0 ? (
+      {error && (
+        <p className="font-body text-sm text-amber mb-4">Ошибка загрузки: {error}</p>
+      )}
+
+      {loading ? (
+        <div className="flex items-center gap-2 font-body text-sm text-mute">
+          <Loader2 size={16} className="animate-spin" />
+          Загружаю...
+        </div>
+      ) : allVehicles.length === 0 ? (
         <p className="font-body text-mute">
           В этой категории пока нет машин с заполненными данными.
         </p>
-      ) : vehicles.length === 0 ? (
+      ) : vehiclesFiltered.length === 0 ? (
         <p className="font-body text-mute">
           Ничего не найдено по заданным условиям.
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {vehicles.map((v) => (
+          {vehiclesFiltered.map((v) => (
             <VehicleCard key={v.slug} vehicle={v} />
           ))}
         </div>

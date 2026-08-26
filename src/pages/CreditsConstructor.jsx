@@ -8,7 +8,8 @@ import {
   updateEntry,
   deleteEntry,
 } from "../data/credits";
-import { getVehicle, vehicles } from "../data/vehicles";
+import { getVehicle } from "../data/vehicles";
+import { useVehiclesContext } from "../context/VehiclesContext";
 import { Plus, Trash2, ChevronUp, ChevronDown, Pencil, X, Check } from "lucide-react";
 
 // Тот же пароль/хэш, что у /vehicle-constructor (VITE_CONSTRUCTOR_PASSWORD_HASH
@@ -100,11 +101,12 @@ function slugifyProviderId(value) {
 }
 
 // Выбор машин для профиля владельца гаража: можно найти и выбрать уже
-// существующую машину из реестра сайта (src/data/vehicles), а можно
-// вписать slug машины, которой на сайте ещё нет — она появится жёлтым
-// чипом с пометкой "ещё нет на сайте", а привязка подхватится сама,
-// как только машину с таким же slug добавят в реестр.
+// существующую машину из реестра сайта (Supabase, через
+// useVehiclesContext), а можно вписать slug машины, которой на сайте ещё
+// нет — она появится жёлтым чипом с пометкой "ещё нет на сайте", а
+// привязка подхватится сама, как только машину с таким же slug добавят.
 function VehicleSlugsPicker({ value, onChange }) {
+  const { vehicles } = useVehiclesContext();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [customSlug, setCustomSlug] = useState("");
@@ -164,7 +166,7 @@ function VehicleSlugsPicker({ value, onChange }) {
           <span className="font-body text-xs text-mute">Машины не выбраны</span>
         )}
         {selectedSlugs.map((slug) => {
-          const vehicle = getVehicle(slug);
+          const vehicle = getVehicle(vehicles, slug);
           return (
             <span
               key={slug}
@@ -254,7 +256,7 @@ function VehicleSlugsPicker({ value, onChange }) {
       </div>
       <p className="font-body text-[11px] text-mute mt-1.5 leading-snug">
         Жёлтые чипы — машины, которых пока нет на сайте. Когда добавишь машину
-        с точно таким же slug в реестр (src/data/vehicles), привязка сама
+        с точно таким же slug (через /vehicle-constructor), привязка сама
         подтянет её название и станет зелёной — ничего здесь менять не надо.
       </p>
     </div>

@@ -1,16 +1,37 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getVehicle, getCategory, getColorHexes, getColorAccentHex } from "../data/vehicles";
+import { useVehiclesContext } from "../context/VehiclesContext";
 import Breadcrumbs from "../components/Breadcrumbs";
 import ColorChip from "../components/ColorChip";
 import CopyHex from "../components/CopyHex";
 import PhotoSlot from "../components/PhotoSlot";
 import TagChip from "../components/TagChip";
+import { Loader2 } from "lucide-react";
 
 export default function VehicleDetail() {
   const { slug } = useParams();
-  const vehicle = getVehicle(slug);
-  const [activeId, setActiveId] = useState(vehicle?.colors[0]?.id);
+  const { vehicles, loading, error } = useVehiclesContext();
+  const vehicle = getVehicle(vehicles, slug);
+  const [activeId, setActiveId] = useState();
+  const currentActiveId = activeId ?? vehicle?.colors[0]?.id;
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-5 py-10 flex items-center gap-2 font-body text-sm text-mute">
+        <Loader2 size={16} className="animate-spin" />
+        Загружаю...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto px-5 py-10">
+        <p className="font-body text-amber">Ошибка загрузки: {error}</p>
+      </div>
+    );
+  }
 
   if (!vehicle) {
     return (
@@ -27,7 +48,7 @@ export default function VehicleDetail() {
 
   const category = getCategory(vehicle.category);
   const activeColor =
-    vehicle.colors.find((c) => c.id === activeId) ?? vehicle.colors[0];
+    vehicle.colors.find((c) => c.id === currentActiveId) ?? vehicle.colors[0];
   const activeHexes = getColorHexes(activeColor);
   const activeAccentHex = getColorAccentHex(activeColor);
 

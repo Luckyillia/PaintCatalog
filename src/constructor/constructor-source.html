@@ -215,7 +215,7 @@
       </div>
     </div>
 
-    <label style="margin-top:16px;">Путь к файлу с данными машины</label>
+    <label style="margin-top:16px;">Путь к файлу с данными машины (для zip/скачивания — не влияет на публикацию)</label>
     <div class="path-preview" id="jsPathPreview">src/data/vehicles/legkovoy/zaz-968.js</div>
   </div>
 
@@ -238,7 +238,7 @@
   <div class="panel" id="outputPanel">
     <h2>Результат</h2>
 
-    <label>Код файла данных (можно скопировать и вставить вручную)</label>
+    <label>Код файла данных (можно скопировать и вставить вручную — для ручного/офлайн способа)</label>
     <textarea class="code-output" id="codeOutput" readonly spellcheck="false"></textarea>
 
     <label style="margin-top: 16px;">Список тегов машины (для справки/копирования — сами теги уже включены в код файла выше)</label>
@@ -257,14 +257,14 @@
       <span class="status" id="publishStatus"></span>
     </div>
     <p class="hint">
-      Фото уходят в Cloudinary, а описание машины (с этими же путями к фото, включая теги) — в таблицу
-      <code>pending_vehicles</code> в Supabase. Локально на компьютере запускаешь
-      <code>node scripts/pull-vehicles.mjs</code> — он скачает фото, создаст файл машины
-      и подскажет две строки для <code>index.js</code>.
+      Фото уходят в Cloudinary, а сама машина (со всеми цветами и тегами) записывается
+      напрямую в таблицу <code>vehicles</code> в Supabase — публикация сразу видна на сайте,
+      ничего локально запускать не нужно. Если slug уже существует — запись просто
+      перезапишется (это и есть способ отредактировать уже опубликованную машину).
     </p>
 
     <div class="instructions" style="margin-top:20px;">
-      <h2>Как поставить на сайт</h2>
+      <h2>Офлайн-способ (без публикации онлайн)</h2>
       <ol id="instructionsList"></ol>
     </div>
   </div>
@@ -1174,16 +1174,11 @@
   }
 
   function generateInstructions(data) {
-    const camel = toCamelCase(data.slug);
     const jsPath = `src/data/vehicles/${data.category}/${data.slug}.js`;
-    const imgFolder = `public/images/vehicles/${data.category}/${data.slug}/`;
     const steps = [
-      `Скачай пакет (.zip) кнопкой ниже — внутри уже лежит файл <code>${jsPath}</code> (теги уже включены прямо в него) и все обрезанные фото по правильным путям.`,
-      `Распакуй архив и перенеси файл данных в <code>${jsPath}</code> в своём проекте.`,
-      `Перенеси папку с фото в <code>${imgFolder}</code> (создай папки, если их ещё нет).`,
-      `Открой <code>src/data/vehicles/index.js</code> и добавь в начало импорт:<br><code>import ${camel} from "./${data.category}/${data.slug}";</code>`,
-      `В том же файле добавь <code>${camel}</code> в массив <code>vehicles</code> (внутри квадратных скобок, через запятую с остальными).`,
-      `Сохрани и перезапусти <code>npm run dev</code> — машина появится в категории «${data.category}».`,
+      `Этот способ нужен только если по каким-то причинам не пользуешься кнопкой «Опубликовать онлайн» ниже.`,
+      `Скачай пакет (.zip) кнопкой ниже — внутри лежит файл <code>${jsPath}</code> и все обрезанные фото.`,
+      `Если у тебя ещё остался старый локальный реестр src/data/vehicles/*.js — перенеси файл туда. Если ты уже переехал на Supabase (см. основной способ выше) — этот файл не нужен, просто загрузи фото в Cloudinary/хостинг и вставь готовые URL при следующей публикации.`,
     ];
     return steps;
   }
@@ -1269,19 +1264,13 @@
       }
     });
 
-    const camel = toCamelCase(data.slug);
-    const instructionsLines = [
-      `Куда положить файлы`,
-      `====================`,
-      ``,
-      `1. src/data/vehicles/${data.category}/${data.slug}.js -> положи в свой проект по этому же пути (теги уже внутри файла).`,
-      `2. Папку public/images/vehicles/${data.category}/${data.slug}/ -> перенеси в public/images/vehicles/${data.category}/ своего проекта.`,
-      `3. Открой src/data/vehicles/index.js и добавь в начало файла:`,
-      `   import ${camel} from "./${data.category}/${data.slug}";`,
-      `4. В том же файле добавь ${camel} в массив vehicles.`,
-      `5. Сохрани и перезапусти npm run dev.`,
-    ];
-    zip.file("INSTRUCTIONS.txt", instructionsLines.join("\n"));
+    zip.file(
+      "INSTRUCTIONS.txt",
+      [
+        "Это офлайн-пакет (для сайта на локальном реестре src/data/vehicles).",
+        "Если ты уже переехал на Supabase — используй кнопку «Опубликовать онлайн» вместо этого архива.",
+      ].join("\n")
+    );
 
     statusEl.textContent = "Собираю архив...";
     const content = await zip.generateAsync({ type: "blob" });
@@ -1296,10 +1285,10 @@
   });
 
   /* ---------------------------------------------------------------------
-     Online publish — upload photos to Cloudinary, insert the vehicle
-     record (with Cloudinary URLs) into a Supabase table. A local script
-     (scripts/pull-vehicles.mjs) later reads that table, downloads the
-     photos into public/images/..., and writes the real .js data file.
+     Online publish — uploads photos to Cloudinary, then writes the
+     vehicle record directly into the `vehicles` table in Supabase
+     (upsert by slug). No local script or manual file drop needed
+     afterwards — the site reads straight from that table.
   --------------------------------------------------------------------- */
 
   const publishBtn = document.getElementById("publishBtn");
@@ -1371,44 +1360,41 @@
           publishStatus.textContent = `Загружаю фото цвета "${d.name || d.id}"...`;
           imageUrl = await uploadToCloudinary(d.image.blob, cfg);
         }
-        colors.push({
+        const colorRecord = {
           id: d.id,
           name: d.name,
-          twoTone: d.twoTone,
-          hex1: d.hex1 || "#000000",
-          hex2: d.hex2 || "#000000",
-          hasAccent: d.hasAccent,
-          accentHex: d.accentHex || "",
-          imageUrl,
-        });
+          image: imageUrl,
+        };
+        if (d.twoTone) {
+          colorRecord.hexes = [d.hex1 || "#000000", d.hex2 || "#000000"];
+        } else {
+          colorRecord.hex = d.hex1 || "#000000";
+        }
+        if (d.hasAccent && d.accentHex) {
+          colorRecord.accentHex = d.accentHex;
+        }
+        colors.push(colorRecord);
       }
 
-      const payload = {
+      const row = {
         slug: data.slug,
         category: data.category,
         name: data.name,
-        tagIds: data.tagIds,
-        mainImageUrl: mainUrl,
+        tags: data.tagIds,
+        image: mainUrl,
         colors,
       };
 
       publishStatus.textContent = "Записываю в Supabase...";
-      const res = await fetch(`${cfg.supabaseUrl}/rest/v1/pending_vehicles`, {
+      const res = await fetch(`${cfg.supabaseUrl}/rest/v1/vehicles?on_conflict=slug`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           apikey: cfg.supabaseAnonKey,
           Authorization: `Bearer ${cfg.supabaseAnonKey}`,
-          Prefer: "return=minimal",
+          Prefer: "resolution=merge-duplicates,return=minimal",
         },
-        body: JSON.stringify([
-          {
-            slug: data.slug,
-            category: data.category,
-            status: "pending",
-            data: payload,
-          },
-        ]),
+        body: JSON.stringify([row]),
       });
 
       if (!res.ok) {
@@ -1417,7 +1403,7 @@
       }
 
       publishStatus.style.color = "var(--signal)";
-      publishStatus.textContent = "Опубликовано! Запусти локально node scripts/pull-vehicles.mjs";
+      publishStatus.textContent = "Опубликовано! Машина уже видна на сайте — ничего запускать не нужно.";
     } catch (err) {
       publishStatus.style.color = "var(--danger)";
       publishStatus.textContent = "Ошибка: " + err.message;

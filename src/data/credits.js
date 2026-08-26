@@ -1,10 +1,18 @@
-import { getVehicle } from "./vehicles";
+import { getVehicle, getCachedVehicles } from "./vehicles";
 import { supabaseRest } from "../lib/supabase";
 
-// Стена почёта теперь хранится в Supabase (таблицы credit_groups и
-// credit_entries), а не в этом файле. Редактируется через
-// /credits-constructor. Здесь остались только функции чтения/записи и
-// чистая логика (getProviderNote и т.д.), которая раньше жила тут же.
+// Стена почёта хранится в Supabase (таблицы credit_groups и
+// credit_entries). Редактируется через /credits-constructor. Здесь
+// остались только функции чтения/записи и чистая логика (getProviderNote
+// и т.д.).
+//
+// getProviderVehicleNames использует getCachedVehicles() (см.
+// src/data/vehicles.js) вместо контекста, потому что это чистая функция
+// без доступа к React-дереву (вызывается из CreditCard.jsx и
+// ProviderDetail.jsx). VehiclesProvider наполняет этот кэш при старте
+// приложения — на практике к моменту первого рендера стены почёта он уже
+// готов, но в первые миллисекунды загрузки заметка под именем может быть
+// пустой, пока кэш не прогрелся.
 
 // --- маппинг DB (snake_case) <-> приложение (camelCase) -----------------
 
@@ -43,8 +51,6 @@ function entryToRow(entry) {
 
 // --- чтение (публичные страницы /credits и /provider/:id) ---------------
 
-// Возвращает [{id, title, sortOrder, entries: [...]}], уже отсортированные
-// по sortOrder — и группы, и записи внутри них.
 export async function fetchCreditGroups() {
   const [groupRows, entryRows] = await Promise.all([
     supabaseRest("credit_groups?select=*&order=sort_order.asc"),
@@ -65,11 +71,12 @@ export async function fetchProviderById(id) {
   return rows[0] ? mapEntry(rows[0]) : null;
 }
 
-// Берёт названия машин записи по vehicleSlugs (через реестр машин).
+// Берёт названия машин записи по vehicleSlugs (через кэш реестра машин).
 // Слаги, для которых машина не найдена, тихо пропускаются.
 export function getProviderVehicleNames(entry) {
+  const vehicles = getCachedVehicles();
   return (entry?.vehicleSlugs ?? [])
-    .map((slug) => getVehicle(slug)?.name)
+    .map((slug) => getVehicle(vehicles, slug)?.name)
     .filter(Boolean);
 }
 

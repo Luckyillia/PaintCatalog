@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchProviderById, getProviderNote } from "../data/credits";
 import { getVehicle } from "../data/vehicles";
+import { useVehiclesContext } from "../context/VehiclesContext";
 import Breadcrumbs from "../components/Breadcrumbs";
 import VehicleCard from "../components/VehicleCard";
 import { ExternalLink, Loader2 } from "lucide-react";
@@ -11,6 +12,7 @@ export default function ProviderDetail() {
   // undefined = ещё грузится, null = загрузили и не нашли
   const [provider, setProvider] = useState(undefined);
   const [error, setError] = useState("");
+  const { vehicles, loading: vehiclesLoading } = useVehiclesContext();
 
   useEffect(() => {
     let cancelled = false;
@@ -36,7 +38,7 @@ export default function ProviderDetail() {
     );
   }
 
-  if (provider === undefined) {
+  if (provider === undefined || vehiclesLoading) {
     return (
       <div className="max-w-6xl mx-auto px-5 py-10 flex items-center gap-2 font-body text-sm text-mute">
         <Loader2 size={16} className="animate-spin" />
@@ -58,8 +60,8 @@ export default function ProviderDetail() {
     );
   }
 
-  const vehicles = (provider.vehicleSlugs ?? [])
-    .map((slug) => getVehicle(slug))
+  const providerVehicles = (provider.vehicleSlugs ?? [])
+    .map((slug) => getVehicle(vehicles, slug))
     .filter(Boolean);
 
   const note = getProviderNote(provider);
@@ -122,16 +124,16 @@ export default function ProviderDetail() {
       <h2 className="font-display text-2xl tracking-wide text-ink mb-4 flex items-center gap-3">
         Предоставленные машины
         <span className="flex-1 h-px bg-hair" />
-        <span className="font-mono text-xs text-mute">{vehicles.length}</span>
+        <span className="font-mono text-xs text-mute">{providerVehicles.length}</span>
       </h2>
 
-      {vehicles.length === 0 ? (
+      {providerVehicles.length === 0 ? (
         <p className="font-body text-mute">
           Машины пока не привязаны к этому профилю.
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {vehicles.map((v) => (
+          {providerVehicles.map((v) => (
             <VehicleCard key={v.slug} vehicle={v} />
           ))}
         </div>

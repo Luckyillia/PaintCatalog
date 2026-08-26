@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import { getVehiclesByCategory } from "../data/vehicles";
+import { useVehiclesContext } from "../context/VehiclesContext";
 import PhotoSlot from "./PhotoSlot";
 
 export default function CategoryCard({ category }) {
-  const count = getVehiclesByCategory(category.slug).length;
+  const { vehicles } = useVehiclesContext();
+  const count = getVehiclesByCategory(vehicles, category.slug).length;
 
   return (
     <Link
@@ -12,7 +14,7 @@ export default function CategoryCard({ category }) {
     >
       <PhotoSlot
         src={category.image}
-        alt={category.name + ". Made by "+ category.alt}
+        alt={category.name + ". Made by " + category.alt}
         className="h-24"
         label="Фото категории"
       />
