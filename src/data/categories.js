@@ -5,7 +5,7 @@ export const categories = [
   { slug: "gruzovoy", name: "Грузовой транспорт", image: "" },
   { slug: "obshestvenniy", name: "Общественный транспорт", image: "" },
   { slug: "moto", name: "Мототранспорт", image: "" },
-  { slug: "konteynery", name: "Автомобили из контейнеров", image: "/images/categories/konteynery.jpg", alt: "Bentley Production | MTA Province #6" },
+  { slug: "konteynery", name: "Автомобили из контейнеров", image: "https://res.cloudinary.com/drheazqra/image/upload/v1787789074/osnova/categories/konteynery.jpg", alt: "Bentley Production | MTA Province #6" },
   { slug: "sobytiya", name: "Автомобили из событий", image: "" },
 ];
 
