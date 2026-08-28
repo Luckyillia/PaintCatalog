@@ -10,6 +10,7 @@ import {
 } from "../../data/credits";
 import { getVehicle } from "../../data/vehicles";
 import { useVehiclesContext } from "../../context/VehiclesContext";
+import { formatRelativeTime } from "../../lib/textUtils";
 import { Plus, Trash2, ChevronUp, ChevronDown, Pencil, X, Check } from "lucide-react";
 
 const emptyEntryForm = {
