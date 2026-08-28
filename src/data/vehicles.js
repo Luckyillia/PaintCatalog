@@ -1,18 +1,11 @@
-// Заменяет старый index.js. Реестр машин (src/data/vehicles/**/*.js)
-// перенесён в Supabase (см. sql/vehicles-schema.sql +
-// scripts/migrate-vehicles.mjs) — этот файл больше не импортирует
-// отдельные .js-файлы машин, а читает их из таблицы vehicles.
-//
-// Категории и теги остаются статикой (их редко правят, смысла в
-// Supabase для них нет) — реэкспортируются отсюда без изменений, чтобы
-// компоненты вроде TagChip/VehicleCard не пришлось трогать.
+// Реестр машин читается из Supabase (таблица vehicles). Категории
+// остаются статикой. Теги теперь отдельно в src/data/tags.js /
+// TagsContext — этот файл их больше не хранит и не реэкспортирует.
 
 import { supabaseRest } from "../lib/supabase";
 import { categories, getCategory } from "./categories";
-import { tags, tagGroups, getTag, getTagColor } from "./tags";
 
 export { categories, getCategory };
-export { tags, tagGroups, getTag, getTagColor };
 
 function mapRow(row) {
   return {
@@ -25,10 +18,6 @@ function mapRow(row) {
   };
 }
 
-// Простой модульный кэш — заполняется один раз VehiclesProvider'ом
-// (см. src/context/VehiclesContext.jsx), но доступен и синхронно через
-// getCachedVehicles() для мест, которым неудобно тянуть контекст
-// (например src/data/credits.js — чистая функция без доступа к React).
 let _cache = null;
 let _pending = null;
 
@@ -47,16 +36,9 @@ export async function fetchVehiclesFromSupabase() {
   return _pending;
 }
 
-// ВАЖНО: до первой успешной загрузки вернёт []. Компоненты, которым
-// нужна гарантированная свежесть данных, должны использовать
-// useVehiclesContext() вместо этой функции.
 export function getCachedVehicles() {
   return _cache ?? [];
 }
-
-// --- чистые функции над уже загруженным списком машин --------------------
-// (раньше читали замыканием общий массив `vehicles`, теперь массив —
-// явный первый аргумент)
 
 export function getVehicle(vehicles, slug) {
   return vehicles.find((v) => v.slug === slug);
@@ -71,14 +53,16 @@ export function getVehiclesByTags(list, tagIds) {
   return list.filter((v) => v.tags?.some((t) => tagIds.includes(t)));
 }
 
-export function getUsedTagIds(list) {
+// Теперь принимает список тегов явным аргументом (берётся из
+// useTagsContext на странице), чтобы порядок сортировки шёл из базы,
+// а не из статического файла.
+export function getUsedTagIds(list, tags) {
   const set = new Set();
   list.forEach((v) => v.tags?.forEach((t) => set.add(t)));
   const order = new Map(tags.map((t, i) => [t.id, i]));
   return Array.from(set).sort((a, b) => (order.get(a) ?? 999) - (order.get(b) ?? 999));
 }
 
-// Цвет может быть одинарным (hex) или двухцветным (hexes: [a, b])
 export function getColorHexes(color) {
   return color.hexes ?? [color.hex];
 }

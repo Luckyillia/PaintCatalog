@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import PhotoSlot from "./PhotoSlot";
-import { getTag, getTagColor } from "../data/vehicles";
+import { useTagsContext } from "../context/TagsContext";
+import { getTag, getTagColor } from "../data/tags";
 
 export default function VehicleCard({ vehicle }) {
+  const { tags } = useTagsContext();
   const tagList = (vehicle.tags ?? [])
-    .map((id) => getTag(id))
+    .map((id) => getTag(tags, id))
     .filter(Boolean);
 
   return (
@@ -35,7 +37,7 @@ export default function VehicleCard({ vehicle }) {
                 key={tag.id}
                 title={tag.label}
                 className="w-2 h-2 rounded-full shrink-0"
-                style={{ background: getTagColor(tag.id) }}
+                style={{ background: getTagColor(tags, tag.id) }}
               />
             ))}
           </div>

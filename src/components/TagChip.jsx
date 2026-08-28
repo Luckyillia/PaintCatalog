@@ -1,10 +1,12 @@
 import { X } from "lucide-react";
-import { getTag, getTagColor } from "../data/vehicles";
+import { useTagsContext } from "../context/TagsContext";
+import { getTag, getTagColor } from "../data/tags";
 
 export default function TagChip({ tagId, active, onClick, removable = false }) {
-  const tag = getTag(tagId);
+  const { tags } = useTagsContext();
+  const tag = getTag(tags, tagId);
   if (!tag) return null;
-  const color = getTagColor(tagId);
+  const color = getTagColor(tags, tagId);
 
   return (
     <button

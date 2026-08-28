@@ -5,17 +5,20 @@ import { useEffect, useRef, useState } from "react";
 const PASSWORD_HASH = import.meta.env.VITE_CONSTRUCTOR_PASSWORD_HASH;
 const SESSION_KEY = "osnova-constructor-unlocked";
 
-// Настройки Supabase/Cloudinary для самого конструктора (не для
-// scripts/pull-vehicles.mjs — там свои, серверные переменные без
-// префикса VITE_). Эти значения и так не секретные — anon-ключ
-// Supabase умеет только INSERT (RLS), Cloudinary-пресет — только
-// upload, так что их наличие в собранном JS не проблема.
+// Настройки для самого конструктора (не для scripts/pull-vehicles.mjs —
+// там свои, серверные переменные без префикса VITE_). Supabase anon-ключ
+// умеет только INSERT (RLS), так что его наличие в собранном JS не
+// проблема. Cloudinary-ключей тут больше нет вообще — загрузка фото
+// теперь подписанная (signed) и идёт через serverless-функцию
+// /api/cloudinary-sign, которая одна знает секрет. apiBaseUrl нужен,
+// потому что конструктор рендерится в iframe с srcDoc — у него нет
+// собственного адреса, поэтому явный origin передаём из родительской
+// страницы.
 const CONSTRUCTOR_CONFIG = {
   type: "osnova-constructor-config",
   supabaseUrl: import.meta.env.VITE_SUPABASE_URL || "",
   supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || "",
-  cloudinaryCloud: import.meta.env.VITE_CLOUDINARY_CLOUD || "",
-  cloudinaryPreset: import.meta.env.VITE_CLOUDINARY_PRESET || "",
+  apiBaseUrl: typeof window !== "undefined" ? window.location.origin : "",
 };
 
 async function sha256Hex(text) {
@@ -59,7 +62,7 @@ export default function Constructor() {
 
   // Как только iframe с конструктором даёт знать, что готов слушать
   // (см. src/constructor/constructor-source.html), отправляем ему
-  // настройки из .env.
+  // настройки из .env и текущий origin страницы.
   useEffect(() => {
     if (!unlocked || !html) return;
     function handleMessage(event) {

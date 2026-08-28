@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Check } from "lucide-react";
-import { getTag, getTagColor } from "../data/vehicles";
+import { useTagsContext } from "../context/TagsContext";
+import { getTag, getTagColor } from "../data/tags";
 
 export default function FilterDropdown({ label, tagIds, selected, onToggle }) {
+  const { tags } = useTagsContext();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const activeCount = tagIds.filter((id) => selected.includes(id)).length;
@@ -52,9 +54,9 @@ export default function FilterDropdown({ label, tagIds, selected, onToggle }) {
       {open && (
         <div className="absolute left-0 top-full mt-2 w-64 max-h-72 overflow-y-auto rounded-md border border-hair bg-raised shadow-lg z-30 p-1.5 chip-scroll">
           {tagIds.map((id) => {
-            const tag = getTag(id);
+            const tag = getTag(tags, id);
             if (!tag) return null;
-            const color = getTagColor(id);
+            const color = getTagColor(tags, id);
             const active = selected.includes(id);
             return (
               <button

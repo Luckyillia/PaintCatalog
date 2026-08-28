@@ -2,8 +2,7 @@
 # .env НЕ коммить в git — добавь его в .gitignore.
 
 # ── Браузерные (попадают в собранный JS сайта — это ожидаемо и ОК,
-#    потому что anon-ключ Supabase умеет только INSERT (RLS), а
-#    Cloudinary-пресет — только upload) ─────────────────────────────
+#    потому что anon-ключ Supabase умеет только INSERT (RLS)) ───────────
 
 # Пароль на страницу /vehicle-constructor. НЕ сам пароль, а его SHA-256
 # хэш — получить: node scripts/hash-password.mjs "твой-пароль"
@@ -13,12 +12,20 @@ VITE_CONSTRUCTOR_PASSWORD_HASH=
 VITE_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
 
-# Cloudinary → Dashboard (Cloud name) и Settings → Upload → Upload presets
-VITE_CLOUDINARY_CLOUD=my-cloud
-VITE_CLOUDINARY_PRESET=osnova-unsigned
+# ── Серверные (НЕТ префикса VITE_ — в браузер никогда не попадают).
+#    Используются: (1) serverless-функцией api/cloudinary-sign.js, которая
+#    выдаёт конструктору подпись для signed-загрузки фото; (2) локальным
+#    scripts/migrate-images-to-cloudinary.mjs. На проде задаются в
+#    Vercel → Project Settings → Environment Variables, а не в .env. ────
 
-# ── Серверные (используются только scripts/pull-vehicles.mjs на твоём
-#    компьютере, в браузер никогда не попадают) ─────────────────────
+# Cloudinary → Dashboard (Cloud name) и Settings → Access Keys
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+# Базовая папка в Cloudinary. Итоговый путь фото машины:
+# {CLOUDINARY_FOLDER}/vehicles/{category}/{slug}/{main|id-цвета}
+CLOUDINARY_FOLDER=osnova
 
 # Можно не задавать — если пусто, скрипт возьмёт VITE_SUPABASE_URL выше.
 SUPABASE_URL=

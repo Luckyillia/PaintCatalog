@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getCategory, getVehiclesByCategory, getVehiclesByTags, getUsedTagIds } from "../data/vehicles";
 import { useVehiclesContext } from "../context/VehiclesContext";
+import { useTagsContext } from "../context/TagsContext";
 import Breadcrumbs from "../components/Breadcrumbs";
 import VehicleCard from "../components/VehicleCard";
 import TagFilterBar from "../components/TagFilterBar";
@@ -11,11 +12,12 @@ export default function Category() {
   const { slug } = useParams();
   const category = getCategory(slug);
   const { vehicles, loading, error } = useVehiclesContext();
+  const { tags } = useTagsContext();
   const allVehicles = useMemo(() => getVehiclesByCategory(vehicles, slug), [vehicles, slug]);
   const [selectedTags, setSelectedTags] = useState([]);
   const [query, setQuery] = useState("");
 
-  const availableTagIds = useMemo(() => getUsedTagIds(allVehicles), [allVehicles]);
+  const availableTagIds = useMemo(() => getUsedTagIds(allVehicles, tags), [allVehicles, tags]);
 
   const vehiclesFiltered = useMemo(() => {
     let list = getVehiclesByTags(allVehicles, selectedTags);

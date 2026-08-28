@@ -2,9 +2,11 @@ import { useMemo } from "react";
 import { X } from "lucide-react";
 import FilterDropdown from "./FilterDropdown";
 import TagChip from "./TagChip";
-import { tagGroups, tags as allTags } from "../data/vehicles";
+import { useTagsContext } from "../context/TagsContext";
 
 export default function TagFilterBar({ availableTagIds, selected, onToggle, onClear }) {
+  const { tagGroups, tags: allTags } = useTagsContext();
+
   const groups = useMemo(() => {
     if (!availableTagIds || availableTagIds.length === 0) return [];
     const availableSet = new Set(availableTagIds);
@@ -16,7 +18,7 @@ export default function TagFilterBar({ availableTagIds, selected, onToggle, onCl
           .map((t) => t.id),
       }))
       .filter((g) => g.tagIds.length > 0);
-  }, [availableTagIds]);
+  }, [availableTagIds, tagGroups, allTags]);
 
   if (groups.length === 0) return null;
 

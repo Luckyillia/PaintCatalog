@@ -129,6 +129,13 @@
   .tags-summary {
     font-size: 12px; color: var(--mute); margin-top: 4px;
   }
+  .tags-loading, .tags-error {
+    font-size: 13px; color: var(--mute); padding: 8px 0;
+  }
+  .tags-error { color: var(--danger); }
+  .new-tag-form {
+    border-top: 1px solid var(--hair); margin-top: 16px; padding-top: 16px;
+  }
 
   textarea.code-output {
     font-family: 'JetBrains Mono', monospace; font-size: 12.5px; min-height: 220px;
@@ -174,8 +181,9 @@
     <h2>Нет подключения</h2>
     <p class="hint">
       Этот файл открыт напрямую, а не через страницу <code>/vehicle-constructor</code> сайта —
-      поэтому нет настроек Supabase/Cloudinary. Открой конструктор через сайт (там пароль,
-      а настройки приходят автоматически из <code>.env</code>).
+      поэтому нет настроек Supabase и адреса API (нужны для загрузки фото и списка тегов).
+      Открой конструктор через сайт (там пароль, а настройки приходят автоматически из
+      <code>.env</code> и текущего адреса).
     </p>
   </div>
 
@@ -229,10 +237,32 @@
     <h2>Теги</h2>
     <p class="hint" style="margin-top:-6px; margin-bottom:16px;">
       Отметь теги, которые подходят машине — они нужны для фильтра на сайте
-      (кузов, марка, происхождение и т.д.). Можно не выбирать ни одного.
+      (кузов, марка, происхождение и т.д.). Можно не выбирать ни одного. Список тегов
+      подтягивается из базы — если нужного тега нет, добавь его формой ниже, он сразу
+      появится и здесь, и на сайте.
     </p>
+    <div id="tagsStatus" class="tags-loading">Загружаю теги...</div>
     <div id="tagsGroups"></div>
-    <p class="tags-summary" id="tagsSummary">Теги не выбраны</p>
+    <p class="tags-summary" id="tagsSummary"></p>
+
+    <div class="new-tag-form">
+      <div class="row">
+        <div class="field grow">
+          <label for="newTagLabel">Название нового тега</label>
+          <input type="text" id="newTagLabel" placeholder="Например: Rally" />
+        </div>
+        <div class="field">
+          <label for="newTagId">ID (латиницей, необязательно)</label>
+          <input type="text" id="newTagId" placeholder="rally" />
+        </div>
+        <div class="field">
+          <label for="newTagGroup">Группа</label>
+          <select id="newTagGroup"></select>
+        </div>
+        <button type="button" id="addTagBtn" class="secondary">+ Добавить тег</button>
+      </div>
+      <span class="status" id="newTagStatus"></span>
+    </div>
   </div>
 
   <div class="panel" id="outputPanel">
@@ -257,10 +287,13 @@
       <span class="status" id="publishStatus"></span>
     </div>
     <p class="hint">
-      Фото уходят в Cloudinary, а сама машина (со всеми цветами и тегами) записывается
-      напрямую в таблицу <code>vehicles</code> в Supabase — публикация сразу видна на сайте,
-      ничего локально запускать не нужно. Если slug уже существует — запись просто
-      перезапишется (это и есть способ отредактировать уже опубликованную машину).
+      Фото уходят в Cloudinary подписанной (signed) загрузкой — подпись выдаёт серверная функция
+      сайта, секретный ключ никогда не попадает в браузер. Путь всегда
+      <code>osnova/vehicles/{категория}/{slug}/{main или id цвета}</code>, при повторной публикации
+      файл с тем же именем перезаписывается. Сама машина (со всеми цветами и тегами) записывается
+      напрямую в таблицу <code>vehicles</code> в Supabase — публикация сразу видна на сайте. Если
+      slug уже существует — запись просто перезапишется (это и есть способ отредактировать уже
+      опубликованную машину).
     </p>
 
     <div class="instructions" style="margin-top:20px;">
@@ -356,175 +389,6 @@
     return String(str).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
   }
 
-  /* ---------------------------------------------------------------------
-     Tags registry — keep this list in sync with src/data/tags.js on the
-     site. Each tag gets its own unique color (golden-angle hue rotation,
-     same algorithm as the site) so chips never repeat colors even as the
-     list grows.
-  --------------------------------------------------------------------- */
-
-  const TAG_GROUPS = [
-    { id: "brand", label: "Марка" },
-    { id: "body", label: "Кузов" },
-    { id: "origin", label: "Происхождение" },
-    { id: "era", label: "Эпоха" },
-    { id: "drive", label: "Привод" },
-    { id: "special", label: "Особое" },
-  ];
-
-  const RAW_TAGS = [
-    // Марка
-    { id: "bmw", label: "BMW", group: "brand" },
-    { id: "vaz", label: "ВАЗ", group: "brand" },
-    { id: "volkswagen", label: "Volkswagen", group: "brand" },
-    { id: "porsche", label: "Porsche", group: "brand" },
-    { id: "chevrolet", label: "Chevrolet", group: "brand" },
-    { id: "audi", label: "Audi", group: "brand" },
-    { id: "uaz", label: "УАЗ", group: "brand" },
-    { id: "jeep", label: "Jeep", group: "brand" },
-    { id: "lada", label: "Lada", group: "brand" },
-    { id: "nissan", label: "Nissan", group: "brand" },
-    { id: "mercedes", label: "Mercedes-Benz", group: "brand" },
-    { id: "toyota", label: "Toyota", group: "brand" },
-    { id: "honda", label: "Honda", group: "brand" },
-    { id: "ford", label: "Ford", group: "brand" },
-    { id: "mazda", label: "Mazda", group: "brand" },
-    { id: "mitsubishi", label: "Mitsubishi", group: "brand" },
-    { id: "subaru", label: "Subaru", group: "brand" },
-    { id: "lexus", label: "Lexus", group: "brand" },
-    { id: "kia", label: "Kia", group: "brand" },
-    { id: "hyundai", label: "Hyundai", group: "brand" },
-    { id: "gaz", label: "ГАЗ", group: "brand" },
-    { id: "moskvich", label: "Москвич", group: "brand" },
-    { id: "zaz", label: "ЗАЗ", group: "brand" },
-    { id: "ural", label: "Урал", group: "brand" },
-    { id: "kamaz", label: "КамАЗ", group: "brand" },
-    { id: "opel", label: "Opel", group: "brand" },
-    { id: "renault", label: "Renault", group: "brand" },
-    { id: "peugeot", label: "Peugeot", group: "brand" },
-    { id: "citroen", label: "Citroën", group: "brand" },
-    { id: "fiat", label: "Fiat", group: "brand" },
-    { id: "alfa-romeo", label: "Alfa Romeo", group: "brand" },
-    { id: "ferrari", label: "Ferrari", group: "brand" },
-    { id: "lamborghini", label: "Lamborghini", group: "brand" },
-    { id: "maserati", label: "Maserati", group: "brand" },
-    { id: "bentley", label: "Bentley", group: "brand" },
-    { id: "rolls-royce", label: "Rolls-Royce", group: "brand" },
-    { id: "aston-martin", label: "Aston Martin", group: "brand" },
-    { id: "bugatti", label: "Bugatti", group: "brand" },
-    { id: "mclaren", label: "McLaren", group: "brand" },
-    { id: "jaguar", label: "Jaguar", group: "brand" },
-    { id: "land-rover", label: "Land Rover", group: "brand" },
-    { id: "mini", label: "Mini", group: "brand" },
-    { id: "volvo", label: "Volvo", group: "brand" },
-    { id: "saab", label: "Saab", group: "brand" },
-    { id: "skoda", label: "Škoda", group: "brand" },
-    { id: "seat", label: "Seat", group: "brand" },
-    { id: "dodge", label: "Dodge", group: "brand" },
-    { id: "chrysler", label: "Chrysler", group: "brand" },
-    { id: "cadillac", label: "Cadillac", group: "brand" },
-    { id: "buick", label: "Buick", group: "brand" },
-    { id: "gmc", label: "GMC", group: "brand" },
-    { id: "pontiac", label: "Pontiac", group: "brand" },
-    { id: "lincoln", label: "Lincoln", group: "brand" },
-    { id: "infiniti", label: "Infiniti", group: "brand" },
-    { id: "acura", label: "Acura", group: "brand" },
-    { id: "datsun", label: "Datsun", group: "brand" },
-    { id: "suzuki", label: "Suzuki", group: "brand" },
-    { id: "isuzu", label: "Isuzu", group: "brand" },
-    { id: "tesla", label: "Tesla", group: "brand" },
-    { id: "zil", label: "ЗИЛ", group: "brand" },
-    { id: "izh", label: "ИЖ", group: "brand" },
-    { id: "maz", label: "МАЗ", group: "brand" },
-    { id: "chery", label: "Chery", group: "brand" },
-    { id: "geely", label: "Geely", group: "brand" },
-    { id: "haval", label: "Haval", group: "brand" },
-    { id: "byd", label: "BYD", group: "brand" },
-    { id: "hummer", label: "Hummer", group: "brand" },
-
-    // Кузов
-    { id: "sedan", label: "Седан", group: "body" },
-    { id: "suv", label: "Внедорожник", group: "body" },
-    { id: "coupe", label: "Купе", group: "body" },
-    { id: "wagon", label: "Универсал", group: "body" },
-    { id: "hatchback", label: "Хэтчбек", group: "body" },
-    { id: "liftback", label: "Лифтбек", group: "body" },
-    { id: "pickup", label: "Пикап", group: "body" },
-    { id: "minivan", label: "Минивэн", group: "body" },
-    { id: "cabrio", label: "Кабриолет", group: "body" },
-    { id: "crossover", label: "Кроссовер", group: "body" },
-    { id: "bus", label: "Автобус", group: "body" },
-    { id: "truck", label: "Грузовик", group: "body" },
-    { id: "moto", label: "Мотоцикл", group: "body" },
-    { id: "roadster", label: "Родстер", group: "body" },
-    { id: "targa", label: "Тарга", group: "body" },
-    { id: "muscle-car", label: "Масл-кар", group: "body" },
-    { id: "lowrider", label: "Лоурайдер", group: "body" },
-    { id: "van", label: "Фургон", group: "body" },
-    { id: "microvan", label: "Микровэн", group: "body" },
-    { id: "semi-truck", label: "Тягач", group: "body" },
-    { id: "dump-truck", label: "Самосвал", group: "body" },
-    { id: "tow-truck", label: "Эвакуатор", group: "body" },
-    { id: "fire-truck", label: "Пожарная машина", group: "body" },
-    { id: "ambulance", label: "Скорая помощь", group: "body" },
-    { id: "limousine", label: "Лимузин", group: "body" },
-    { id: "buggy", label: "Багги", group: "body" },
-    { id: "supercar", label: "Суперкар", group: "body" },
-    { id: "hypercar", label: "Гиперкар", group: "body" },
-
-    // Происхождение
-    { id: "otechestvenniy", label: "Отечественный", group: "origin" },
-    { id: "inomarka", label: "Иномарка", group: "origin" },
-    { id: "sovetskiy", label: "Советский", group: "origin" },
-    { id: "evropeyskiy", label: "Европейский", group: "origin" },
-    { id: "amerikanskiy", label: "Американский", group: "origin" },
-    { id: "aziatskiy", label: "Азиатский", group: "origin" },
-    { id: "nemetskiy", label: "Немецкий", group: "origin" },
-    { id: "yaponskiy", label: "Японский", group: "origin" },
-    { id: "koreyskiy", label: "Корейский", group: "origin" },
-    { id: "kitayskiy", label: "Китайский", group: "origin" },
-
-    // Эпоха
-    { id: "era-50s", label: "50-е", group: "era" },
-    { id: "era-60s", label: "60-е", group: "era" },
-    { id: "era-70s", label: "70-е", group: "era" },
-    { id: "era-80s", label: "80-е", group: "era" },
-    { id: "era-90s", label: "90-е", group: "era" },
-    { id: "era-2000s", label: "2000-е", group: "era" },
-    { id: "era-2010s", label: "2010-е", group: "era" },
-    { id: "era-2020s", label: "2020-е", group: "era" },
-
-    // Привод
-    { id: "fwd", label: "Передний привод", group: "drive" },
-    { id: "rwd", label: "Задний привод", group: "drive" },
-    { id: "awd", label: "Полный привод", group: "drive" },
-
-    // Особое
-    { id: "tuning", label: "Тюнинг", group: "special" },
-    { id: "limited", label: "Лимитка", group: "special" },
-    { id: "sport", label: "Спорт", group: "special" },
-    { id: "offroad", label: "Оффроуд", group: "special" },
-    { id: "stance", label: "Stance", group: "special" },
-    { id: "restomod", label: "Рестомод", group: "special" },
-    { id: "police", label: "Полиция", group: "special" },
-    { id: "event", label: "Ивентовый", group: "special" },
-    { id: "widebody", label: "Widebody", group: "special" },
-    { id: "lifted", label: "Лифтованный", group: "special" },
-    { id: "slammed", label: "Заниженный", group: "special" },
-    { id: "jdm", label: "JDM", group: "special" },
-    { id: "retro", label: "Ретро", group: "special" },
-    { id: "taxi", label: "Такси", group: "special" },
-    { id: "military", label: "Военный", group: "special" },
-    { id: "vip", label: "VIP", group: "special" },
-    { id: "drift", label: "Дрифт", group: "special" },
-    { id: "rally", label: "Ралли", group: "special" },
-    { id: "concept", label: "Концепт", group: "special" },
-    { id: "matte", label: "Матовый", group: "special" },
-    { id: "wrap", label: "Плёнка/Wrap", group: "special" },
-    { id: "service", label: "Спецтранспорт", group: "special" },
-    { id: "racing", label: "Гоночный", group: "special" },
-  ];
-
   function hslToHex(h, s, l) {
     s /= 100; l /= 100;
     const k = (n) => (n + h / 30) % 12;
@@ -533,13 +397,16 @@
     const toHex = (x) => Math.round(255 * x).toString(16).padStart(2, "0");
     return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
   }
-
   const GOLDEN_ANGLE = 137.508;
-  const TAGS = RAW_TAGS.map((tag, i) => ({
-    ...tag,
-    color: hslToHex((i * GOLDEN_ANGLE) % 360, 68, 58),
-  }));
 
+  /* ---------------------------------------------------------------------
+     Tags — теперь читаются из Supabase (таблицы tag_groups / tags), а не
+     из захардкоженного списка. TAG_GROUPS/TAGS заполняются функцией
+     loadTags() ниже, как только придут настройки подключения.
+  --------------------------------------------------------------------- */
+
+  let TAG_GROUPS = [];
+  let TAGS = [];
   const selectedTags = new Set();
 
   /* ---------------------------------------------------------------------
@@ -557,8 +424,14 @@
   const mainRemoveBtn = document.getElementById("mainRemoveBtn");
   const colorsList = document.getElementById("colorsList");
   const addColorBtn = document.getElementById("addColorBtn");
+  const tagsStatusEl = document.getElementById("tagsStatus");
   const tagsGroupsEl = document.getElementById("tagsGroups");
   const tagsSummaryEl = document.getElementById("tagsSummary");
+  const newTagLabelInput = document.getElementById("newTagLabel");
+  const newTagIdInput = document.getElementById("newTagId");
+  const newTagGroupSelect = document.getElementById("newTagGroup");
+  const addTagBtn = document.getElementById("addTagBtn");
+  const newTagStatusEl = document.getElementById("newTagStatus");
   const codeOutput = document.getElementById("codeOutput");
   const tagsCodeOutput = document.getElementById("tagsCodeOutput");
   const copyCodeBtn = document.getElementById("copyCodeBtn");
@@ -573,6 +446,10 @@
   --------------------------------------------------------------------- */
 
   function updateTagsSummary() {
+    if (TAGS.length === 0) {
+      tagsSummaryEl.textContent = "";
+      return;
+    }
     if (selectedTags.size === 0) {
       tagsSummaryEl.textContent = "Теги не выбраны";
       return;
@@ -606,7 +483,9 @@
         chip.style.setProperty("--tag-color", tag.color);
         chip.style.setProperty("--tag-glow", tag.color + "4d");
         chip.style.setProperty("--tag-glow-strong", tag.color + "66");
-        chip.setAttribute("aria-pressed", "false");
+        const isActive = selectedTags.has(tag.id);
+        chip.classList.toggle("active", isActive);
+        chip.setAttribute("aria-pressed", String(isActive));
 
         chip.addEventListener("click", () => {
           const active = selectedTags.has(tag.id);
@@ -628,6 +507,120 @@
       tagsGroupsEl.appendChild(wrap);
     });
   }
+
+  function renderNewTagGroupOptions() {
+    newTagGroupSelect.innerHTML = "";
+    TAG_GROUPS.forEach((group) => {
+      const opt = document.createElement("option");
+      opt.value = group.id;
+      opt.textContent = group.label;
+      newTagGroupSelect.appendChild(opt);
+    });
+  }
+
+  /* ---------------------------------------------------------------------
+     Загрузка тегов из Supabase (та же таблица, что читает и сайт) и
+     добавление нового тега прямо из конструктора.
+  --------------------------------------------------------------------- */
+
+  async function loadTags(cfg) {
+    if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) return;
+    tagsStatusEl.style.display = "";
+    tagsStatusEl.className = "tags-loading";
+    tagsStatusEl.textContent = "Загружаю теги...";
+    try {
+      const authHeaders = {
+        apikey: cfg.supabaseAnonKey,
+        Authorization: `Bearer ${cfg.supabaseAnonKey}`,
+      };
+      const [groupsRes, tagsRes] = await Promise.all([
+        fetch(`${cfg.supabaseUrl}/rest/v1/tag_groups?select=*&order=sort_order.asc`, { headers: authHeaders }),
+        fetch(`${cfg.supabaseUrl}/rest/v1/tags?select=*&order=sort_order.asc`, { headers: authHeaders }),
+      ]);
+      if (!groupsRes.ok) throw new Error(`tag_groups: ${groupsRes.status}`);
+      if (!tagsRes.ok) throw new Error(`tags: ${tagsRes.status}`);
+
+      const groupRows = await groupsRes.json();
+      const tagRows = await tagsRes.json();
+
+      TAG_GROUPS = groupRows.map((g) => ({ id: g.id, label: g.label }));
+      TAGS = tagRows.map((t) => ({ id: t.id, label: t.label, group: t.group_id, color: t.color }));
+
+      tagsStatusEl.style.display = "none";
+      renderTagGroups();
+      renderNewTagGroupOptions();
+      updateTagsSummary();
+      scheduleUpdate();
+    } catch (err) {
+      tagsStatusEl.className = "tags-error";
+      tagsStatusEl.textContent = "Не удалось загрузить теги: " + err.message;
+    }
+  }
+
+  async function createTag(cfg) {
+    const label = newTagLabelInput.value.trim();
+    if (!label) {
+      newTagStatusEl.style.color = "var(--danger)";
+      newTagStatusEl.textContent = "Впиши название тега";
+      return;
+    }
+    const groupId = newTagGroupSelect.value;
+    if (!groupId) {
+      newTagStatusEl.style.color = "var(--danger)";
+      newTagStatusEl.textContent = "Нет ни одной группы тегов в базе";
+      return;
+    }
+    const id = sanitizeSlug(newTagIdInput.value || label, "");
+    if (!id) {
+      newTagStatusEl.style.color = "var(--danger)";
+      newTagStatusEl.textContent = "Не удалось сгенерировать ID тега — впиши его вручную";
+      return;
+    }
+    if (TAGS.some((t) => t.id === id)) {
+      newTagStatusEl.style.color = "var(--danger)";
+      newTagStatusEl.textContent = `Тег с ID "${id}" уже существует`;
+      return;
+    }
+
+    addTagBtn.disabled = true;
+    newTagStatusEl.style.color = "var(--signal)";
+    newTagStatusEl.textContent = "Добавляю...";
+
+    try {
+      const color = hslToHex((TAGS.length * GOLDEN_ANGLE) % 360, 68, 58);
+      const res = await fetch(`${cfg.supabaseUrl}/rest/v1/tags`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: cfg.supabaseAnonKey,
+          Authorization: `Bearer ${cfg.supabaseAnonKey}`,
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify([{ id, label, group_id: groupId, color, sort_order: TAGS.length }]),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(`${res.status} ${text.slice(0, 200)}`);
+      }
+
+      newTagLabelInput.value = "";
+      newTagIdInput.value = "";
+      newTagStatusEl.textContent = `Тег "${label}" добавлен`;
+      await loadTags(cfg);
+      // сразу отмечаем свежедобавленный тег на этой машине
+      selectedTags.add(id);
+      renderTagGroups();
+      updateTagsSummary();
+      scheduleUpdate();
+    } catch (err) {
+      newTagStatusEl.style.color = "var(--danger)";
+      newTagStatusEl.textContent = "Ошибка добавления тега: " + err.message;
+    } finally {
+      addTagBtn.disabled = false;
+    }
+  }
+
+  addTagBtn.addEventListener("click", () => createTag(currentConnectionSettings()));
 
   let slugManuallyEdited = false;
 
@@ -920,13 +913,6 @@
             <input type="text" class="hex2" placeholder="#000000" style="flex:1;" />
           </div>
         </div>
-        <div class="field small hex2Wrap" style="display:none;">
-          <label>Hex 2</label>
-          <div class="swatch-pair">
-            <input type="color" class="colorPicker2" value="#000000" />
-            <input type="text" class="hex2" placeholder="#000000" style="flex:1;" />
-          </div>
-        </div>
         <div class="checkbox-line">
           <input type="checkbox" class="hasAccent" />
           <span>Цвет вставок</span>
@@ -1029,13 +1015,6 @@
       scheduleUpdate();
     });
     hex2Input.addEventListener("input", scheduleUpdate);
-    hex2Input.addEventListener("blur", () => {
-      const norm = normalizeHex(hex2Input.value);
-      hex2Input.value = norm;
-      if (/^#[0-9A-F]{6}$/.test(norm)) picker2.value = norm.toLowerCase();
-      scheduleUpdate();
-    });
-
     hex2Input.addEventListener("blur", () => {
       const norm = normalizeHex(hex2Input.value);
       hex2Input.value = norm;
@@ -1162,8 +1141,7 @@
     return lines.join("\n");
   }
 
-  // Просто список тегов машины для справки/копирования — отдельного
-  // файла src/data/vehicleTags.js больше не существует, теги уже
+  // Просто список тегов машины для справки/копирования — сами теги уже
   // включены прямо в код выше (см. generateCode).
   function generateTagsSnippet(data) {
     if (data.tagIds.length === 0) {
@@ -1285,10 +1263,13 @@
   });
 
   /* ---------------------------------------------------------------------
-     Online publish — uploads photos to Cloudinary, then writes the
-     vehicle record directly into the `vehicles` table in Supabase
-     (upsert by slug). No local script or manual file drop needed
-     afterwards — the site reads straight from that table.
+     Online publish — uploads photos to Cloudinary via a SIGNED upload
+     (секретный ключ никогда не покидает сервер: подпись выдаёт
+     serverless-функция /api/cloudinary-sign), затем пишет саму запись
+     машины напрямую в таблицу `vehicles` в Supabase (upsert по slug).
+     Путь в Cloudinary всегда osnova/vehicles/{category}/{slug}/{name},
+     с overwrite — повторная публикация того же слага/цвета перезаписывает
+     файл вместо создания дубля.
   --------------------------------------------------------------------- */
 
   const publishBtn = document.getElementById("publishBtn");
@@ -1296,25 +1277,47 @@
 
   // Настройки подключения приходят ТОЛЬКО через postMessage от родительской
   // страницы /vehicle-constructor (см. обработчик message ниже, в конце
-  // файла) — она берёт их из .env сайта. Тут нет ни полей ввода, ни
+  // файла) — она берёт supabaseUrl/supabaseAnonKey из .env сайта и
+  // apiBaseUrl из текущего адреса страницы. Тут нет ни полей ввода, ни
   // localStorage: если открыть этот файл напрямую, конструктор останется
-  // без подключения (см. панель "Нет подключения" выше).
+  // без подключения (см. панель "Нет подключения") и без списка тегов.
   let connectionSettings = {
     supabaseUrl: "",
     supabaseAnonKey: "",
-    cloudinaryCloud: "",
-    cloudinaryPreset: "",
+    apiBaseUrl: "",
   };
 
   function currentConnectionSettings() {
     return connectionSettings;
   }
 
-  async function uploadToCloudinary(blob, cfg) {
+  async function getSignedUploadParams(cfg, category, slug, name) {
+    const res = await fetch(`${cfg.apiBaseUrl}/api/cloudinary-sign`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category, slug, name }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Подпись Cloudinary: ${res.status} ${text.slice(0, 200)}`);
+    }
+    return res.json();
+  }
+
+  async function uploadToCloudinary(blob, cfg, category, slug, name) {
+    const signed = await getSignedUploadParams(cfg, category, slug, name);
+
     const form = new FormData();
     form.append("file", blob);
-    form.append("upload_preset", cfg.cloudinaryPreset);
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${cfg.cloudinaryCloud}/image/upload`, {
+    form.append("api_key", signed.apiKey);
+    form.append("timestamp", signed.timestamp);
+    form.append("signature", signed.signature);
+    form.append("folder", signed.folder);
+    form.append("public_id", signed.publicId);
+    form.append("overwrite", "true");
+    form.append("invalidate", "true");
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${signed.cloudName}/image/upload`, {
       method: "POST",
       body: form,
     });
@@ -1328,7 +1331,7 @@
 
   async function publishVehicleOnline() {
     const cfg = currentConnectionSettings();
-    if (!cfg.supabaseUrl || !cfg.supabaseAnonKey || !cfg.cloudinaryCloud || !cfg.cloudinaryPreset) {
+    if (!cfg.supabaseUrl || !cfg.supabaseAnonKey || !cfg.apiBaseUrl) {
       publishStatus.textContent =
         "Нет настроек подключения — открой конструктор через /vehicle-constructor на сайте (не этот файл напрямую)";
       publishStatus.style.color = "var(--danger)";
@@ -1349,7 +1352,7 @@
       let mainUrl = "";
       if (mainImage.blob) {
         publishStatus.textContent = "Загружаю обложку в Cloudinary...";
-        mainUrl = await uploadToCloudinary(mainImage.blob, cfg);
+        mainUrl = await uploadToCloudinary(mainImage.blob, cfg, data.category, data.slug, "main");
       }
 
       const colors = [];
@@ -1358,7 +1361,7 @@
         let imageUrl = "";
         if (d.image.blob) {
           publishStatus.textContent = `Загружаю фото цвета "${d.name || d.id}"...`;
-          imageUrl = await uploadToCloudinary(d.image.blob, cfg);
+          imageUrl = await uploadToCloudinary(d.image.blob, cfg, data.category, data.slug, d.id);
         }
         const colorRecord = {
           id: d.id,
@@ -1416,10 +1419,12 @@
 
   /* ---------------------------------------------------------------------
      Приём настроек подключения от родительской страницы (React-обёртка
-     с паролем /vehicle-constructor передаёт значения из .env сайта через
-     postMessage). Если конструктор открыт напрямую (не в iframe этой
-     страницы) — сообщение никогда не придёт, connectionSettings останутся
-     пустыми, и публикация покажет понятную ошибку с подсказкой ниже.
+     с паролем /vehicle-constructor передаёт значения из .env сайта плюс
+     текущий origin через postMessage). Как только настройки пришли —
+     сразу подгружаем список тегов из Supabase. Если конструктор открыт
+     напрямую (не в iframe этой страницы) — сообщение никогда не придёт,
+     connectionSettings останутся пустыми, теги не загрузятся, и
+     публикация покажет понятную ошибку с подсказкой ниже.
   --------------------------------------------------------------------- */
   window.addEventListener("message", (event) => {
     const cfg = event.data;
@@ -1427,15 +1432,17 @@
     connectionSettings = {
       supabaseUrl: (cfg.supabaseUrl || "").trim().replace(/\/+$/, ""),
       supabaseAnonKey: (cfg.supabaseAnonKey || "").trim(),
-      cloudinaryCloud: (cfg.cloudinaryCloud || "").trim(),
-      cloudinaryPreset: (cfg.cloudinaryPreset || "").trim(),
+      apiBaseUrl: (cfg.apiBaseUrl || "").trim().replace(/\/+$/, ""),
     };
+    loadTags(connectionSettings);
   });
   if (window.parent && window.parent !== window) {
     window.parent.postMessage({ type: "osnova-constructor-ready" }, "*");
   } else {
     const panel = document.getElementById("connectionPanel");
     if (panel) panel.style.display = "";
+    tagsStatusEl.className = "tags-error";
+    tagsStatusEl.textContent = "Нет подключения — теги не загружены (см. панель выше).";
   }
 
   /* ---------------------------------------------------------------------
@@ -1444,8 +1451,6 @@
 
   setMainThumb();
   addColorRow();
-  renderTagGroups();
-  updateTagsSummary();
   scheduleUpdate();
 })();
 </script>
