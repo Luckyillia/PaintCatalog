@@ -5,6 +5,7 @@ import Category from "./pages/Category";
 import VehicleDetail from "./pages/VehicleDetail";
 import CreditsWall from "./pages/CreditsWall";
 import ProviderDetail from "./pages/ProviderDetail";
+import Favorites from "./pages/Favorites";
 
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminHome from "./pages/admin/AdminHome";
@@ -37,6 +38,7 @@ export default function App() {
               <Route path="/vehicle/:slug" element={<VehicleDetail />} />
               <Route path="/credits" element={<CreditsWall />} />
               <Route path="/provider/:id" element={<ProviderDetail />} />
+              <Route path="/favorites" element={<Favorites />} />
             </Routes>
           </div>
         }

@@ -1,20 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getVehicle, getCategory, getColorHexes, getColorAccentHex } from "../data/vehicles";
 import { useVehiclesContext } from "../context/VehiclesContext";
+import { useFavorites } from "../context/FavoritesContext";
 import Breadcrumbs from "../components/Breadcrumbs";
 import ColorChip from "../components/ColorChip";
 import CopyHex from "../components/CopyHex";
 import PhotoSlot from "../components/PhotoSlot";
 import TagChip from "../components/TagChip";
+import FavoriteButton from "../components/FavoriteButton";
 import { Loader2 } from "lucide-react";
 
 export default function VehicleDetail() {
   const { slug } = useParams();
   const { vehicles, loading, error } = useVehiclesContext();
+  const { addRecentlyViewed } = useFavorites();
   const vehicle = getVehicle(vehicles, slug);
   const [activeId, setActiveId] = useState();
   const currentActiveId = activeId ?? vehicle?.colors[0]?.id;
+
+  useEffect(() => {
+    if (vehicle?.slug) addRecentlyViewed(vehicle.slug);
+  }, [vehicle?.slug, addRecentlyViewed]);
+
 
   if (loading) {
     return (
@@ -62,9 +70,12 @@ export default function VehicleDetail() {
         ]}
       />
 
-      <h1 className="font-display text-3xl tracking-wide text-ink mb-3">
-        {vehicle.name}
-      </h1>
+      <div className="flex items-start justify-between gap-4 mb-3">
+        <h1 className="font-display text-3xl tracking-wide text-ink">
+          {vehicle.name}
+        </h1>
+        <FavoriteButton slug={vehicle.slug} size="lg" className="mt-1 shrink-0" />
+      </div>
 
       {vehicle.tags?.length > 0 && (
         <div className="flex items-center gap-1.5 flex-wrap mb-6">

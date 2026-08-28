@@ -5,13 +5,16 @@ import "./index.css";
 import App from "./App.jsx";
 import { VehiclesProvider } from "./context/VehiclesContext";
 import { TagsProvider } from "./context/TagsContext";
+import { FavoritesProvider } from "./context/FavoritesContext";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <VehiclesProvider>
         <TagsProvider>
-          <App />
+          <FavoritesProvider>
+            <App />
+          </FavoritesProvider>
         </TagsProvider>
       </VehiclesProvider>
     </BrowserRouter>

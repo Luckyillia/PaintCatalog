@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import PhotoSlot from "./PhotoSlot";
+import FavoriteButton from "./FavoriteButton";
 import { useTagsContext } from "../context/TagsContext";
 import { getTag, getTagColor } from "../data/tags";
 
@@ -14,12 +15,18 @@ export default function VehicleCard({ vehicle }) {
       to={`/vehicle/${vehicle.slug}`}
       className="group rounded-lg border border-hair bg-panel overflow-hidden hover:border-signal/50 transition-colors flex flex-col"
     >
-      <PhotoSlot
-        src={vehicle.image}
-        alt={vehicle.name}
-        className="h-36"
-        label="Фото пока не загружено"
-      />
+      <div className="relative">
+        <PhotoSlot
+          src={vehicle.image}
+          alt={vehicle.name}
+          className="h-36"
+          label="Фото пока не загружено"
+        />
+        <FavoriteButton
+          slug={vehicle.slug}
+          className="absolute top-2 right-2 z-10"
+        />
+      </div>
       <div className="p-4 flex flex-col gap-2">
         <div className="flex items-center justify-between gap-3">
           <h3 className="font-display text-lg tracking-wide text-ink group-hover:text-signal transition-colors">

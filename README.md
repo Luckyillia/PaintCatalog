@@ -16,18 +16,21 @@ npm run dev
 - `src/pages/` — три экрана: Главная (категории) → Категория (сетка машин) → Машина (выбор цвета).
 
 ## Как добавить новую машину
-Добавь объект в массив `vehicles` в `src/data/vehicles.js`:
+Данные хранятся в Supabase, руками файлы не редактируются — используй `/admin`
+→ «Добавить машину» (или «Редактировать машины»).
+
+Формат записи в таблице `vehicles` (для справки):
 ```js
 {
   slug: "unique-slug",
   category: "legkovoy", // один из categories.slug
   name: "Название",
-  dealership: "...",
-  priceDealer: 40000,
-  priceMarket: 36000,
-  specs: { maxSpeed: "...", accel100: "...", accelMax: "...", drive: "...", bodyType: "...", seats: 4, trunk: 5 },
+  tags: ["brand-bmw", "era-2010s"], // id тегов из таблицы tags
+  image: "https://...",
   colors: [
     { id: "white", name: "Название цвета", hex: "#FFFFFF" },
+    // двухцветная: hexes: ["#AAA", "#BBB"]
+    // accentHex — опционально, цвет вставок
   ],
 }
 ```
