@@ -26,7 +26,8 @@ function mapRow(row) {
 let _cache = null;
 let _pending = null;
 
-export async function fetchVehiclesFromSupabase() {
+export async function fetchVehiclesFromSupabase(forceRefresh = false) {
+  if (forceRefresh) _cache = null;
   if (_cache) return _cache;
   if (!_pending) {
     _pending = supabaseRest("vehicles?select=*&order=name.asc")
@@ -80,11 +81,12 @@ export function getColorAccentHex(color) {
   return color.accentHex ?? null;
 }
 
-// --- админка: полный список без кэша + запись/удаление ------------------
+// --- админка: список (с тем же кэшем, что и публичный сайт — иначе
+// список тормозит на каждое переключение вкладки в /admin, т.к.
+// компонент вкладки размонтируется и монтируется заново) + запись/удаление
 
-export async function adminFetchVehicles() {
-  const rows = await supabaseRest("vehicles?select=*&order=name.asc");
-  return rows.map(mapRow);
+export async function adminFetchVehicles(forceRefresh = false) {
+  return fetchVehiclesFromSupabase(forceRefresh);
 }
 
 // Upsert по slug — если машина с таким slug уже есть, запись полностью
