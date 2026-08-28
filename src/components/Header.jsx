@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { SprayCan, Award } from "lucide-react";
+import { Award, Lock } from "lucide-react";
 
 export default function Header() {
   return (
@@ -21,6 +21,17 @@ export default function Header() {
         >
           <Award size={14} />
           <span className="hidden sm:inline">Стена почёта</span>
+        </Link>
+
+        {/* Секретный вход в админку — без подписи, почти прозрачная,
+            видна только тому, кто присматривается или наводит курсор. */}
+        <Link
+          to="/admin"
+          aria-label="Админка"
+          title="Админка"
+          className="flex items-center justify-center w-7 h-7 rounded text-mute opacity-20 hover:opacity-100 hover:text-signal transition-opacity"
+        >
+          <Lock size={13} />
         </Link>
       </div>
     </header>

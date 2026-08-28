@@ -5,15 +5,26 @@ import Category from "./pages/Category";
 import VehicleDetail from "./pages/VehicleDetail";
 import CreditsWall from "./pages/CreditsWall";
 import ProviderDetail from "./pages/ProviderDetail";
-import Constructor from "./pages/Constructor";
-import CreditsConstructor from "./pages/CreditsConstructor";
+
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminHome from "./pages/admin/AdminHome";
+import VehicleConstructor from "./pages/admin/VehicleConstructor";
+import VehicleEditor from "./pages/admin/VehicleEditor";
+import TagsManager from "./pages/admin/TagsManager";
+import CreditsConstructorAdmin from "./pages/admin/CreditsConstructor";
 
 export default function App() {
   return (
     <Routes>
-      {/* Конструкторы — отдельные полноэкранные роуты, без шапки сайта */}
-      <Route path="/vehicle-constructor" element={<Constructor />} />
-      <Route path="/credits-constructor" element={<CreditsConstructor />} />
+      {/* Единая панель администратора — один пароль на все разделы:
+          добавление/редактирование машин, теги, стена почёта. */}
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminHome />} />
+        <Route path="vehicle-constructor" element={<VehicleConstructor />} />
+        <Route path="vehicle-editor" element={<VehicleEditor />} />
+        <Route path="tags" element={<TagsManager />} />
+        <Route path="credits" element={<CreditsConstructorAdmin />} />
+      </Route>
 
       <Route
         path="*"

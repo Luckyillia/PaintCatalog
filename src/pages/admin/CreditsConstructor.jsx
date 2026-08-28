@@ -7,24 +7,10 @@ import {
   createEntry,
   updateEntry,
   deleteEntry,
-} from "../data/credits";
-import { getVehicle } from "../data/vehicles";
-import { useVehiclesContext } from "../context/VehiclesContext";
+} from "../../data/credits";
+import { getVehicle } from "../../data/vehicles";
+import { useVehiclesContext } from "../../context/VehiclesContext";
 import { Plus, Trash2, ChevronUp, ChevronDown, Pencil, X, Check } from "lucide-react";
-
-// Тот же пароль/хэш, что у /vehicle-constructor (VITE_CONSTRUCTOR_PASSWORD_HASH
-// в .env), но своя запись в sessionStorage — разблокировка одного
-// конструктора не открывает другой.
-const PASSWORD_HASH = import.meta.env.VITE_CONSTRUCTOR_PASSWORD_HASH;
-const SESSION_KEY = "osnova-credits-constructor-unlocked";
-
-async function sha256Hex(text) {
-  const data = new TextEncoder().encode(text);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 const emptyEntryForm = {
   name: "",
@@ -65,9 +51,6 @@ function formToEntryPatch(form, groupId, sortOrder) {
   };
 }
 
-// Приводит произвольный ввод к тому же формату slug, что и остальной
-// сайт (латиница, дефисы) — используется для "будущих" машин, которых
-// ещё нет в реестре src/data/vehicles.
 function sanitizeSlugInput(value) {
   return value
     .trim()
@@ -77,9 +60,6 @@ function sanitizeSlugInput(value) {
     .replace(/^-|-$/g, "");
 }
 
-// Транслитерация для providerId — имя может быть на кириллице
-// ("Астватсатур"), а providerId всегда должен быть латиницей в нижнем
-// регистре (используется в URL /provider/:id).
 const TRANSLIT_MAP = {
   а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "e", ж: "zh", з: "z", и: "i",
   й: "y", к: "k", л: "l", м: "m", н: "n", о: "o", п: "p", р: "r", с: "s", т: "t",
@@ -93,18 +73,12 @@ function transliterateStr(str) {
     .map((c) => (TRANSLIT_MAP[c] !== undefined ? TRANSLIT_MAP[c] : c))
     .join("");
 }
-// Ник -> providerId: только строчные латинские буквы, цифры и дефисы.
 function slugifyProviderId(value) {
   return transliterateStr(value)
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
 
-// Выбор машин для профиля владельца гаража: можно найти и выбрать уже
-// существующую машину из реестра сайта (Supabase, через
-// useVehiclesContext), а можно вписать slug машины, которой на сайте ещё
-// нет — она появится жёлтым чипом с пометкой "ещё нет на сайте", а
-// привязка подхватится сама, как только машину с таким же slug добавят.
 function VehicleSlugsPicker({ value, onChange }) {
   const { vehicles } = useVehiclesContext();
   const [query, setQuery] = useState("");
@@ -160,7 +134,6 @@ function VehicleSlugsPicker({ value, onChange }) {
 
   return (
     <div ref={wrapRef}>
-      {/* выбранные машины */}
       <div className="flex flex-wrap gap-1.5 mb-2">
         {selectedSlugs.length === 0 && (
           <span className="font-body text-xs text-mute">Машины не выбраны</span>
@@ -171,18 +144,12 @@ function VehicleSlugsPicker({ value, onChange }) {
             <span
               key={slug}
               className={`flex items-center gap-1.5 font-mono text-[11px] pl-2 pr-1 py-1 rounded border ${
-                vehicle
-                  ? "border-signal/40 text-signal"
-                  : "border-amber/50 text-amber"
+                vehicle ? "border-signal/40 text-signal" : "border-amber/50 text-amber"
               }`}
               title={vehicle ? vehicle.name : "Ещё нет на сайте — появится, когда добавишь машину с этим slug"}
             >
               {vehicle ? vehicle.name : `${slug} (скоро на сайте)`}
-              <button
-                type="button"
-                onClick={() => removeSlug(slug)}
-                className="hover:text-ink"
-              >
+              <button type="button" onClick={() => removeSlug(slug)} className="hover:text-ink">
                 <X size={11} />
               </button>
             </span>
@@ -190,7 +157,6 @@ function VehicleSlugsPicker({ value, onChange }) {
         })}
       </div>
 
-      {/* поиск по существующим машинам */}
       <div className="relative">
         <input
           value={query}
@@ -230,7 +196,6 @@ function VehicleSlugsPicker({ value, onChange }) {
         )}
       </div>
 
-      {/* slug машины, которой ещё нет на сайте */}
       <div className="flex items-center gap-2 mt-2">
         <input
           value={customSlug}
@@ -255,9 +220,9 @@ function VehicleSlugsPicker({ value, onChange }) {
         </button>
       </div>
       <p className="font-body text-[11px] text-mute mt-1.5 leading-snug">
-        Жёлтые чипы — машины, которых пока нет на сайте. Когда добавишь машину
-        с точно таким же slug (через /vehicle-constructor), привязка сама
-        подтянет её название и станет зелёной — ничего здесь менять не надо.
+        Жёлтые чипы — машины, которых пока нет на сайте. Когда добавишь машину с точно таким же
+        slug (через «Добавить машину»), привязка сама подтянет её название и станет зелёной —
+        ничего здесь менять не надо.
       </p>
     </div>
   );
@@ -265,10 +230,6 @@ function VehicleSlugsPicker({ value, onChange }) {
 
 function EntryForm({ initial, onSave, onCancel, saving }) {
   const [form, setForm] = useState(initial);
-  // Если providerId уже был задан (редактируем существующую запись) —
-  // считаем его "ручным" и не трогаем автогенерацией. Для новой записи
-  // providerId подставляется из имени, пока пользователь не впишет его
-  // сам — тогда автогенерация выключается насовсем для этой формы.
   const [providerIdManual, setProviderIdManual] = useState(Boolean(initial.providerId));
 
   function set(field, value) {
@@ -362,7 +323,8 @@ function EntryForm({ initial, onSave, onCancel, saving }) {
           className="w-full bg-raised border border-hair rounded px-3 py-2 font-mono text-sm text-ink focus:outline-none focus:border-signal/50"
         />
         <p className="font-body text-[11px] text-mute mt-1">
-          Подставляется из имени автоматически (только строчные латинские буквы и дефисы) — можно поправить вручную, оставь пустым, если страница профиля не нужна.
+          Подставляется из имени автоматически — можно поправить вручную, оставь пустым, если
+          страница профиля не нужна.
         </p>
       </div>
 
@@ -456,12 +418,8 @@ function EntryRow({ entry, isFirst, isLast, onMove, onChanged }) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="font-display text-sm tracking-wide text-ink truncate">
-          {entry.name}
-        </p>
-        <p className="font-mono text-[11px] text-signal uppercase tracking-wide">
-          {entry.role}
-        </p>
+        <p className="font-display text-sm tracking-wide text-ink truncate">{entry.name}</p>
+        <p className="font-mono text-[11px] text-signal uppercase tracking-wide">{entry.role}</p>
         {entry.providerId && (
           <p className="font-mono text-[11px] text-mute mt-0.5">
             providerId: {entry.providerId} · машин: {entry.vehicleSlugs.length}
@@ -515,9 +473,7 @@ function GroupBlock({ group, onChanged }) {
     setSavingNew(true);
     try {
       const nextOrder =
-        group.entries.length > 0
-          ? Math.max(...group.entries.map((e) => e.sortOrder)) + 1
-          : 0;
+        group.entries.length > 0 ? Math.max(...group.entries.map((e) => e.sortOrder)) + 1 : 0;
       await createEntry(formToEntryPatch(form, group.id, nextOrder));
       setAddingEntry(false);
       onChanged();
@@ -572,11 +528,7 @@ function GroupBlock({ group, onChanged }) {
           className="font-display text-xl tracking-wide text-ink bg-transparent border-b border-transparent hover:border-hair focus:border-signal/50 focus:outline-none px-1 py-0.5 flex-1"
         />
         <span className="font-mono text-xs text-mute">id: {group.id}</span>
-        <button
-          onClick={handleDeleteGroup}
-          className="text-mute hover:text-amber transition-colors"
-          title="Удалить блок"
-        >
+        <button onClick={handleDeleteGroup} className="text-mute hover:text-amber transition-colors" title="Удалить блок">
           <Trash2 size={15} />
         </button>
       </div>
@@ -592,9 +544,7 @@ function GroupBlock({ group, onChanged }) {
             onChanged={onChanged}
           />
         ))}
-        {sortedEntries.length === 0 && (
-          <p className="font-body text-xs text-mute px-1">Пусто.</p>
-        )}
+        {sortedEntries.length === 0 && <p className="font-body text-xs text-mute px-1">Пусто.</p>}
       </div>
 
       {addingEntry ? (
@@ -675,13 +625,6 @@ function NewGroupForm({ onCreated }) {
 }
 
 export default function CreditsConstructor() {
-  const [unlocked, setUnlocked] = useState(
-    () => sessionStorage.getItem(SESSION_KEY) === "1"
-  );
-  const [password, setPassword] = useState("");
-  const [authError, setAuthError] = useState("");
-  const [checking, setChecking] = useState(false);
-
   const [groups, setGroups] = useState(null);
   const [loadError, setLoadError] = useState("");
 
@@ -692,101 +635,31 @@ export default function CreditsConstructor() {
   }
 
   useEffect(() => {
-    document.title = "Конструктор стены почёта — OSNOVA";
+    reload();
   }, []);
 
-  useEffect(() => {
-    if (unlocked) reload();
-  }, [unlocked]);
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    if (!PASSWORD_HASH) {
-      setAuthError(
-        "Пароль не настроен: добавь VITE_CONSTRUCTOR_PASSWORD_HASH в .env"
-      );
-      return;
-    }
-    setChecking(true);
-    setAuthError("");
-    const hash = await sha256Hex(password);
-    setChecking(false);
-    if (hash === PASSWORD_HASH) {
-      sessionStorage.setItem(SESSION_KEY, "1");
-      setUnlocked(true);
-    } else {
-      setAuthError("Неверный пароль");
-      setPassword("");
-    }
-  }
-
-  if (!unlocked) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-base px-5">
-        <form
-          onSubmit={handleSubmit}
-          className="w-full max-w-sm border border-hair bg-panel rounded-lg p-6"
-        >
-          <h1 className="font-display text-xl tracking-wide text-ink mb-1">
-            Конструктор стены почёта
-          </h1>
-          <p className="font-body text-xs text-mute mb-5">
-            Доступ только по паролю.
-          </p>
-          <input
-            type="password"
-            autoFocus
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full bg-raised border border-hair rounded-md px-3 py-2.5 font-body text-sm text-ink focus:outline-none focus:border-signal/50 transition-colors mb-3"
-          />
-          {authError && (
-            <p className="font-body text-xs text-amber mb-3">{authError}</p>
-          )}
-          <button
-            type="submit"
-            disabled={checking || !password}
-            className="w-full rounded-md bg-signal text-[#06120d] font-body text-sm font-semibold py-2.5 hover:bg-signal-bright transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {checking ? "Проверяю..." : "Войти"}
-          </button>
-        </form>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-base text-ink px-5 py-10">
-      <div className="max-w-4xl mx-auto flex flex-col gap-6">
-        <div>
-          <h1 className="font-display text-2xl tracking-wide text-ink">
-            Конструктор стены почёта
-          </h1>
-          <p className="font-body text-xs text-mute mt-1">
-            Изменения сохраняются в Supabase сразу — публичная страница
-            /credits подхватит их при следующей загрузке.
-          </p>
-        </div>
+    <div>
+      <h1 className="font-display text-2xl tracking-wide text-ink mb-1">Стена почёта</h1>
+      <p className="font-body text-xs text-mute mb-6">
+        Изменения сохраняются в Supabase сразу — публичная страница /credits подхватит их при
+        следующей загрузке.
+      </p>
 
-        {loadError && (
-          <p className="font-body text-sm text-amber">
-            Ошибка загрузки: {loadError}
-          </p>
-        )}
+      {loadError && <p className="font-body text-sm text-amber mb-6">Ошибка загрузки: {loadError}</p>}
 
-        {!groups && !loadError && (
-          <p className="font-body text-sm text-mute">Загружаю...</p>
-        )}
+      {!groups && !loadError && <p className="font-body text-sm text-mute">Загружаю...</p>}
 
-        {groups &&
-          [...groups]
+      {groups && (
+        <div className="flex flex-col gap-6">
+          {[...groups]
             .sort((a, b) => a.sortOrder - b.sortOrder)
             .map((group) => (
               <GroupBlock key={group.id} group={group} onChanged={reload} />
             ))}
-
-        {groups && <NewGroupForm onCreated={reload} />}
-      </div>
+          <NewGroupForm onCreated={reload} />
+        </div>
+      )}
     </div>
   );
 }

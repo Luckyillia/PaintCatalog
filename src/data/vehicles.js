@@ -1,6 +1,11 @@
 // Реестр машин читается из Supabase (таблица vehicles). Категории
-// остаются статикой. Теги теперь отдельно в src/data/tags.js /
-// TagsContext — этот файл их больше не хранит и не реэкспортирует.
+// остаются статикой. Теги — отдельно в src/data/tags.js / TagsContext.
+//
+// Помимо обычного публичного чтения (fetchVehiclesFromSupabase — с
+// кэшем, для сайта), здесь есть блок функций для админки
+// (adminFetchVehicles / adminSaveVehicle / adminDeleteVehicle) — они
+// всегда идут в Supabase напрямую, без кэша, и используются в
+// src/pages/admin/VehicleEditor.jsx и src/components/admin/VehicleForm.jsx.
 
 import { supabaseRest } from "../lib/supabase";
 import { categories, getCategory } from "./categories";
@@ -40,6 +45,13 @@ export function getCachedVehicles() {
   return _cache ?? [];
 }
 
+// Сбрасывает кэш публичного каталога — вызывается после любой правки в
+// админке (создание/редактирование/удаление машины), чтобы сайт
+// подхватил свежие данные при следующей загрузке VehiclesContext.
+export function clearVehiclesCache() {
+  _cache = null;
+}
+
 export function getVehicle(vehicles, slug) {
   return vehicles.find((v) => v.slug === slug);
 }
@@ -53,9 +65,6 @@ export function getVehiclesByTags(list, tagIds) {
   return list.filter((v) => v.tags?.some((t) => tagIds.includes(t)));
 }
 
-// Теперь принимает список тегов явным аргументом (берётся из
-// useTagsContext на странице), чтобы порядок сортировки шёл из базы,
-// а не из статического файла.
 export function getUsedTagIds(list, tags) {
   const set = new Set();
   list.forEach((v) => v.tags?.forEach((t) => set.add(t)));
@@ -69,4 +78,38 @@ export function getColorHexes(color) {
 
 export function getColorAccentHex(color) {
   return color.accentHex ?? null;
+}
+
+// --- админка: полный список без кэша + запись/удаление ------------------
+
+export async function adminFetchVehicles() {
+  const rows = await supabaseRest("vehicles?select=*&order=name.asc");
+  return rows.map(mapRow);
+}
+
+// Upsert по slug — если машина с таким slug уже есть, запись полностью
+// перезаписывается (тот же принцип, что был в старом конструкторе:
+// повторная публикация того же slug = редактирование).
+export async function adminSaveVehicle(vehicle) {
+  await supabaseRest("vehicles?on_conflict=slug", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify([
+      {
+        slug: vehicle.slug,
+        category: vehicle.category,
+        name: vehicle.name,
+        tags: vehicle.tags || [],
+        image: vehicle.image || "",
+        colors: vehicle.colors || [],
+      },
+    ]),
+  });
+}
+
+export async function adminDeleteVehicle(slug) {
+  await supabaseRest(`vehicles?slug=eq.${encodeURIComponent(slug)}`, {
+    method: "DELETE",
+    headers: { Prefer: "return=minimal" },
+  });
 }
