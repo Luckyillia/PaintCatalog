@@ -1,4 +1,5 @@
 import { supabaseRest } from "../lib/supabase";
+import { currentEditor } from "../lib/adminIdentity"; 
 
 // Теги живут в Supabase (таблицы tag_groups и tags). Публичное чтение —
 // с кэшем (fetchTagsFromSupabase, для TagsContext/сайта). Ниже — блок
@@ -55,7 +56,13 @@ export function getTagColor(tags, id) {
 
 export async function adminFetchTagGroups() {
   const rows = await supabaseRest("tag_groups?select=*&order=sort_order.asc");
-  return rows.map((g) => ({ id: g.id, label: g.label, sortOrder: g.sort_order ?? 0 }));
+  return rows.map((g) => ({
+    id: g.id,
+    label: g.label,
+    sortOrder: g.sort_order ?? 0,
+    editedBy: g.edited_by || "",
+    editedAt: g.edited_at || "",
+  }));
 }
 
 export async function adminFetchTags() {
@@ -66,6 +73,8 @@ export async function adminFetchTags() {
     group: t.group_id,
     color: t.color,
     sortOrder: t.sort_order ?? 0,
+    editedBy: t.edited_by || "",
+    editedAt: t.edited_at || "",
   }));
 }
 
@@ -73,13 +82,15 @@ export async function createTagGroup(group) {
   await supabaseRest("tag_groups", {
     method: "POST",
     headers: { Prefer: "return=minimal" },
-    body: JSON.stringify([{ id: group.id, label: group.label, sort_order: group.sortOrder ?? 0 }]),
+    body: JSON.stringify([
+      { id: group.id, label: group.label, sort_order: group.sortOrder ?? 0, edited_by: currentEditor() },
+    ]),
   });
   clearTagsCache();
 }
 
 export async function updateTagGroup(id, patch) {
-  const body = {};
+  const body = { edited_by: currentEditor() };
   if (patch.label !== undefined) body.label = patch.label;
   if (patch.sortOrder !== undefined) body.sort_order = patch.sortOrder;
   await supabaseRest(`tag_groups?id=eq.${encodeURIComponent(id)}`, {
@@ -109,6 +120,7 @@ export async function createTag(tag) {
         group_id: tag.group,
         color: tag.color,
         sort_order: tag.sortOrder ?? 0,
+        edited_by: currentEditor(),
       },
     ]),
   });
@@ -116,7 +128,7 @@ export async function createTag(tag) {
 }
 
 export async function updateTag(id, patch) {
-  const body = {};
+  const body = { edited_by: currentEditor() };
   if (patch.label !== undefined) body.label = patch.label;
   if (patch.group !== undefined) body.group_id = patch.group;
   if (patch.color !== undefined) body.color = patch.color;

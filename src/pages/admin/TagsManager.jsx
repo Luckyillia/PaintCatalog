@@ -70,6 +70,11 @@ function TagRow({ tag, groups, onChanged }) {
         ))}
       </select>
       <span className="font-mono text-[10px] text-mute shrink-0">{tag.id}</span>
+      {tag.editedBy && (
+        <span className="font-mono text-[10px] text-mute shrink-0" title={tag.editedAt}>
+          · {tag.editedBy}
+        </span>
+      )}
       {saving && <Loader2 size={13} className="animate-spin text-mute shrink-0" />}
       <button onClick={handleDelete} className="text-mute hover:text-amber transition-colors shrink-0">
         <Trash2 size={14} />

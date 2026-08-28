@@ -9,6 +9,7 @@
 
 import { supabaseRest } from "../lib/supabase";
 import { categories, getCategory } from "./categories";
+import { currentEditor } from "../lib/adminIdentity";
 
 export { categories, getCategory };
 
@@ -20,6 +21,8 @@ function mapRow(row) {
     tags: row.tags || [],
     image: row.image || "",
     colors: row.colors || [],
+    editedBy: row.edited_by || "",
+    editedAt: row.edited_at || row.created_at || "",
   };
 }
 
@@ -104,10 +107,12 @@ export async function adminSaveVehicle(vehicle) {
         tags: vehicle.tags || [],
         image: vehicle.image || "",
         colors: vehicle.colors || [],
+        edited_by: currentEditor(),
       },
     ]),
   });
 }
+
 
 export async function adminDeleteVehicle(slug) {
   await supabaseRest(`vehicles?slug=eq.${encodeURIComponent(slug)}`, {

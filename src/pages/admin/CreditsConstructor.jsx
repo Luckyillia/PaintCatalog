@@ -425,6 +425,12 @@ function EntryRow({ entry, isFirst, isLast, onMove, onChanged }) {
             providerId: {entry.providerId} · машин: {entry.vehicleSlugs.length}
           </p>
         )}
+        {entry.editedBy && (
+          <p className="font-mono text-[11px] text-mute mt-0.5">
+            правил: {entry.editedBy}
+            {entry.editedAt ? `, ${formatRelativeTime(entry.editedAt)}` : ""}
+          </p>
+        )}
       </div>
 
       <button

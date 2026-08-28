@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Search, Loader2, Trash2, ArrowLeft, RefreshCw } from "lucide-react";
 import { adminFetchVehicles, adminDeleteVehicle, clearVehiclesCache } from "../../data/vehicles";
 import VehicleForm from "../../components/admin/VehicleForm";
+import { formatRelativeTime } from "../../lib/textUtils";
 
 export default function VehicleEditor() {
   const [vehicles, setVehicles] = useState(null);
@@ -133,6 +134,9 @@ export default function VehicleEditor() {
                 <p className="font-display text-sm tracking-wide text-ink">{v.name}</p>
                 <p className="font-mono text-[11px] text-mute mt-0.5">
                   {v.slug} · {v.category} · {v.colors.length} цветов
+                  {v.editedBy && (
+                    <> · правил: {v.editedBy}{v.editedAt ? `, ${formatRelativeTime(v.editedAt)}` : ""}</>
+                  )}
                 </p>
               </div>
             </button>

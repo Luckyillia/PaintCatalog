@@ -1,5 +1,6 @@
 import { getVehicle, getCachedVehicles } from "./vehicles";
 import { supabaseRest } from "../lib/supabase";
+import { currentEditor } from "../lib/adminIdentity";
 
 // Стена почёта хранится в Supabase (таблицы credit_groups и
 // credit_entries). Редактируется через /credits-constructor. Здесь
@@ -17,7 +18,13 @@ import { supabaseRest } from "../lib/supabase";
 // --- маппинг DB (snake_case) <-> приложение (camelCase) -----------------
 
 function mapGroup(row) {
-  return { id: row.id, title: row.title, sortOrder: row.sort_order ?? 0 };
+  return {
+    id: row.id,
+    title: row.title,
+    sortOrder: row.sort_order ?? 0,
+    editedBy: row.edited_by || "",
+    editedAt: row.edited_at || "",
+  };
 }
 
 function mapEntry(row) {
@@ -31,7 +38,9 @@ function mapEntry(row) {
     link: row.link || "",
     providerId: row.provider_id || "",
     vehicleSlugs: row.vehicle_slugs || [],
-    sortOrder: row.sort_order ?? 0,
+    sortOrder: row.sortOrder ?? 0,
+    editedBy: row.edited_by || "",
+    editedAt: row.edited_at || "",
   };
 }
 
@@ -46,6 +55,7 @@ function entryToRow(entry) {
     provider_id: entry.providerId || null,
     vehicle_slugs: entry.vehicleSlugs?.length ? entry.vehicleSlugs : null,
     sort_order: entry.sortOrder ?? 0,
+    edited_by: currentEditor(),
   };
 }
 
@@ -95,14 +105,19 @@ export async function createGroup(group) {
     method: "POST",
     headers: { Prefer: "return=representation" },
     body: JSON.stringify([
-      { id: group.id, title: group.title, sort_order: group.sortOrder ?? 0 },
+      {
+        id: group.id,
+        title: group.title,
+        sort_order: group.sortOrder ?? 0,
+        edited_by: currentEditor(),
+      },
     ]),
   });
   return mapGroup(rows[0]);
 }
 
 export async function updateGroup(id, patch) {
-  const body = {};
+  const body = { edited_by: currentEditor() };
   if (patch.title !== undefined) body.title = patch.title;
   if (patch.sortOrder !== undefined) body.sort_order = patch.sortOrder;
   await supabaseRest(`credit_groups?id=eq.${encodeURIComponent(id)}`, {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, Outlet, Link } from "react-router-dom";
-import { ShieldCheck, ArrowLeft } from "lucide-react";
+import { ShieldCheck, ArrowLeft, UserCog } from "lucide-react";
+import { getAdminName, setAdminName } from "../../lib/adminIdentity";
 
 // Тот же хэш пароля, что был у старых /vehicle-constructor и
 // /credits-constructor (VITE_CONSTRUCTOR_PASSWORD_HASH в .env) — но
@@ -24,10 +25,57 @@ const NAV_ITEMS = [
   { to: "/admin/credits", label: "Стена почёта" },
 ];
 
+function NameGate({ onSet }) {
+  const [name, setName] = useState("");
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setAdminName(name);
+    onSet(name.trim());
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-base px-5">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-sm border border-hair bg-panel rounded-lg p-6"
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <UserCog size={18} className="text-signal" />
+          <h1 className="font-display text-xl tracking-wide text-ink">
+            Как тебя зовут?
+          </h1>
+        </div>
+        <p className="font-body text-xs text-mute mb-5">
+          Пароль на админку общий, поэтому имя нужно для лога правок — кто и
+          когда что менял. Впиши настоящее имя, это займёт секунду.
+        </p>
+        <input
+          autoFocus
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Например: Polter"
+          className="w-full bg-raised border border-hair rounded-md px-3 py-2.5 font-body text-sm text-ink focus:outline-none focus:border-signal/50 transition-colors mb-3"
+        />
+        <button
+          type="submit"
+          disabled={!name.trim()}
+          className="w-full rounded-md bg-signal text-[#06120d] font-body text-sm font-semibold py-2.5 hover:bg-signal-bright transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Продолжить
+        </button>
+      </form>
+    </div>
+  );
+}
+
+
 export default function AdminLayout() {
   const [unlocked, setUnlocked] = useState(
     () => sessionStorage.getItem(SESSION_KEY) === "1"
   );
+  const [adminName, setAdminNameState] = useState(() => getAdminName());
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [checking, setChecking] = useState(false);
@@ -86,11 +134,15 @@ export default function AdminLayout() {
       </div>
     );
   }
+  if (!adminName) {
+    return <NameGate onSet={setAdminNameState} />;
+  }
 
   return (
     <div className="min-h-screen bg-base text-ink">
       <header className="border-b border-hair bg-panel/80 backdrop-blur sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center gap-4 overflow-x-auto chip-scroll">
+          
           <Link
             to="/"
             title="Вернуться на сайт"
@@ -121,6 +173,20 @@ export default function AdminLayout() {
               </NavLink>
             ))}
           </nav>
+          <button
+            onClick={() => {
+              const next = prompt("Изменить имя для лога правок:", adminName);
+              if (next && next.trim()) {
+                setAdminName(next);
+                setAdminNameState(next.trim());
+              }
+            }}
+            className="ml-auto shrink-0 flex items-center gap-1.5 font-body text-xs text-mute hover:text-signal transition-colors"
+            title="Изменить своё имя в логе правок"
+          >
+            <UserCog size={13} />
+            {adminName}
+          </button>
         </div>
       </header>
       <main className="max-w-6xl mx-auto px-5 py-8">
