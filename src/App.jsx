@@ -17,34 +17,36 @@ import CreditsConstructorAdmin from "./pages/admin/CreditsConstructor";
 
 export default function App() {
   return (
-    <Routes>
-      {/* Единая панель администратора — один пароль на все разделы:
-          добавление/редактирование машин, теги, стена почёта. */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<AdminHome />} />
-        <Route path="vehicle-constructor" element={<VehicleConstructor />} />
-        <Route path="vehicle-editor" element={<VehicleEditor />} />
-        <Route path="tags" element={<TagsManager />} />
-        <Route path="credits" element={<CreditsConstructorAdmin />} />
-      </Route>
+    <>
+      <Routes>
+        {/* Единая панель администратора — один пароль на все разделы:
+            добавление/редактирование машин, теги, стена почёта. */}
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminHome />} />
+          <Route path="vehicle-constructor" element={<VehicleConstructor />} />
+          <Route path="vehicle-editor" element={<VehicleEditor />} />
+          <Route path="tags" element={<TagsManager />} />
+          <Route path="credits" element={<CreditsConstructorAdmin />} />
+        </Route>
 
-      <Route
-        path="*"
-        element={
-          <div className="min-h-screen bg-base text-ink">
-            <Header />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/category/:slug" element={<Category />} />
-              <Route path="/vehicle/:slug" element={<VehicleDetail />} />
-              <Route path="/credits" element={<CreditsWall />} />
-              <Route path="/provider/:id" element={<ProviderDetail />} />
-              <Route path="/favorites" element={<Favorites />} />
-            </Routes>
-          </div>
-        }
-      />
+        <Route
+          path="*"
+          element={
+            <div className="min-h-screen bg-base text-ink">
+              <Header />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/category/:slug" element={<Category />} />
+                <Route path="/vehicle/:slug" element={<VehicleDetail />} />
+                <Route path="/credits" element={<CreditsWall />} />
+                <Route path="/provider/:id" element={<ProviderDetail />} />
+                <Route path="/favorites" element={<Favorites />} />
+              </Routes>
+            </div>
+          }
+        />
+      </Routes>
       <Analytics/>
-    </Routes>
+    </>
   );
 }
