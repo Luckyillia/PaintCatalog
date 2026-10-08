@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/vehicle/:slug", "destination": "/api/vehicle-page?slug=:slug" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

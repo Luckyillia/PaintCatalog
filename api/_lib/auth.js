@@ -4,10 +4,15 @@ import crypto from "node:crypto";
 // функциями Vercel (префикс "_").
 //
 // Переменные окружения (только на сервере, БЕЗ префикса VITE_):
-//   ADMIN_USERS           — "Имя:sha256хэш;Другое:sha256хэш"
+//   ADMIN_USERS           — "Имя:хэш;Другое:хэш"
+//                           хэш: scrypt-<salt>-<hash> (рекомендуется,
+//                           см. scripts/hash-password.mjs) или старый
+//                           sha256 из 64 hex-символов — он тоже работает.
 //   ADMIN_SESSION_SECRET  — случайная строка от 32 символов (подпись токенов)
 
 const TOKEN_TTL_MS = 12 * 60 * 60 * 1000; // сессия живёт 12 часов
+const MAX_PASSWORD_LEN = 256;
+const DUMMY_SALT = Buffer.alloc(16);
 
 function getSecret() {
   const s = process.env.ADMIN_SESSION_SECRET || "";
@@ -18,6 +23,10 @@ export function isAuthConfigured() {
   return Boolean(getSecret()) && getUsers().size > 0;
 }
 
+function isStoredHash(h) {
+  return /^[0-9a-f]{64}$/.test(h) || /^scrypt-[0-9a-f]{32}-[0-9a-f]{128}$/.test(h);
+}
+
 export function getUsers() {
   const out = new Map();
   for (const part of (process.env.ADMIN_USERS || "").split(";")) {
@@ -25,7 +34,7 @@ export function getUsers() {
     if (idx <= 0) continue;
     const name = part.slice(0, idx).trim();
     const hash = part.slice(idx + 1).trim().toLowerCase();
-    if (name && /^[0-9a-f]{64}$/.test(hash)) out.set(name, hash);
+    if (name && isStoredHash(hash)) out.set(name, hash);
   }
   return out;
 }
@@ -49,10 +58,24 @@ function safeEqual(a, b) {
 
 export function verifyPassword(name, password) {
   const stored = getUsers().get(name);
-  const hash = crypto.createHash("sha256").update(String(password ?? ""), "utf8").digest("hex");
-  // сравнение выполняется всегда — время ответа не выдаёт, существует ли имя
-  const ok = safeEqual(hash, stored || "0".repeat(64));
-  return Boolean(stored) && ok;
+  const pw = String(password ?? "");
+  if (pw.length > MAX_PASSWORD_LEN) return false;
+
+  if (!stored) {
+    // фиктивный расчёт — время ответа не выдаёт, существует ли имя
+    crypto.scryptSync(pw, DUMMY_SALT, 64);
+    return false;
+  }
+
+  if (stored.startsWith("scrypt-")) {
+    const [, saltHex, hashHex] = stored.split("-");
+    const derived = crypto.scryptSync(pw, Buffer.from(saltHex, "hex"), 64).toString("hex");
+    return safeEqual(derived, hashHex);
+  }
+
+  // старый формат: sha256 без соли
+  const hash = crypto.createHash("sha256").update(pw, "utf8").digest("hex");
+  return safeEqual(hash, stored);
 }
 
 export function signToken(name) {

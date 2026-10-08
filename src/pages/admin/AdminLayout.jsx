@@ -3,9 +3,8 @@ import { NavLink, Outlet, Link } from "react-router-dom";
 import { ShieldCheck, ArrowLeft, LogOut } from "lucide-react";
 import { adminLogin, adminLogout, getAdminName, LOGOUT_EVENT } from "../../lib/adminApi";
 
-// Пароль проверяет сервер (api/admin-login.js), у каждого админа он свой.
-// Здесь хранится только имя для отображения и токен сессии (см.
-// src/lib/adminApi.js). Имя в логе правок (edited_by) ставит сервер.
+// Пароль проверяет сервер (api/admin-login.js). Здесь хранится только имя
+// для отображения и токен сессии (см. src/lib/adminApi.js).
 
 const NAV_ITEMS = [
   { to: "/admin", label: "Главная", end: true },
@@ -13,6 +12,7 @@ const NAV_ITEMS = [
   { to: "/admin/vehicle-editor", label: "Редактировать машины" },
   { to: "/admin/tags", label: "Теги и группы" },
   { to: "/admin/credits", label: "Стена почёта" },
+  { to: "/admin/audit", label: "Журнал" },
 ];
 
 export default function AdminLayout() {
@@ -22,7 +22,6 @@ export default function AdminLayout() {
   const [error, setError] = useState("");
   const [checking, setChecking] = useState(false);
 
-  // adminFetch сбрасывает сессию при 401 / истёкшем токене и шлёт это событие
   useEffect(() => {
     function handleLogout() {
       setAdminName("");
@@ -51,19 +50,12 @@ export default function AdminLayout() {
   if (!adminName) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-base px-5">
-        <form
-          onSubmit={handleSubmit}
-          className="w-full max-w-sm border border-hair bg-panel rounded-lg p-6"
-        >
+        <form onSubmit={handleSubmit} className="w-full max-w-sm border border-hair bg-panel rounded-lg p-6">
           <div className="flex items-center gap-2 mb-1">
             <ShieldCheck size={18} className="text-signal" />
-            <h1 className="font-display text-xl tracking-wide text-ink">
-              Панель администратора
-            </h1>
+            <h1 className="font-display text-xl tracking-wide text-ink">Панель администратора</h1>
           </div>
-          <p className="font-body text-xs text-mute mb-5">
-            Вход по имени и личному паролю. Имя попадает в лог правок.
-          </p>
+          <p className="font-body text-xs text-mute mb-5">Вход по имени и личному паролю. Имя попадает в лог правок.</p>
           <input
             autoFocus
             autoComplete="username"
@@ -97,7 +89,6 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-base text-ink">
       <header className="border-b border-hair bg-panel/80 backdrop-blur sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center gap-4 overflow-x-auto chip-scroll">
-
           <Link
             to="/"
             title="Вернуться на сайт"
@@ -107,9 +98,7 @@ export default function AdminLayout() {
             <span className="hidden sm:inline">На сайт</span>
           </Link>
           <span className="w-px h-5 bg-hair shrink-0" />
-          <span className="font-display text-lg tracking-wide text-ink whitespace-nowrap">
-            Админка
-          </span>
+          <span className="font-display text-lg tracking-wide text-ink whitespace-nowrap">Админка</span>
           <nav className="flex items-center gap-1">
             {NAV_ITEMS.map((item) => (
               <NavLink
@@ -118,9 +107,7 @@ export default function AdminLayout() {
                 end={item.end}
                 className={({ isActive }) =>
                   `font-body text-sm px-3 py-1.5 rounded-md whitespace-nowrap transition-colors border ${
-                    isActive
-                      ? "bg-signal/15 text-signal border-signal/40"
-                      : "text-mute hover:text-ink border-transparent"
+                    isActive ? "bg-signal/15 text-signal border-signal/40" : "text-mute hover:text-ink border-transparent"
                   }`
                 }
               >
@@ -128,9 +115,7 @@ export default function AdminLayout() {
               </NavLink>
             ))}
           </nav>
-          <span className="ml-auto shrink-0 font-body text-xs text-mute whitespace-nowrap">
-            {adminName}
-          </span>
+          <span className="ml-auto shrink-0 font-body text-xs text-mute whitespace-nowrap">{adminName}</span>
           <button
             onClick={adminLogout}
             className="shrink-0 flex items-center gap-1.5 font-body text-xs text-mute hover:text-signal transition-colors"

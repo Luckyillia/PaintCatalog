@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import Header from "./components/Header";
@@ -7,46 +8,51 @@ import VehicleDetail from "./pages/VehicleDetail";
 import CreditsWall from "./pages/CreditsWall";
 import ProviderDetail from "./pages/ProviderDetail";
 import Favorites from "./pages/Favorites";
+import ColorSearch from "./pages/ColorSearch";
 
-import AdminLayout from "./pages/admin/AdminLayout";
-import AdminHome from "./pages/admin/AdminHome";
-import VehicleConstructor from "./pages/admin/VehicleConstructor";
-import VehicleEditor from "./pages/admin/VehicleEditor";
-import TagsManager from "./pages/admin/TagsManager";
-import CreditsConstructorAdmin from "./pages/admin/CreditsConstructor";
+// Админка грузится отдельным чанком — обычные посетители её не скачивают.
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
+const AdminHome = lazy(() => import("./pages/admin/AdminHome"));
+const VehicleConstructor = lazy(() => import("./pages/admin/VehicleConstructor"));
+const VehicleEditor = lazy(() => import("./pages/admin/VehicleEditor"));
+const TagsManager = lazy(() => import("./pages/admin/TagsManager"));
+const CreditsConstructorAdmin = lazy(() => import("./pages/admin/CreditsConstructor"));
+const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
 
 export default function App() {
   return (
     <>
-      <Routes>
-        {/* Единая панель администратора — один пароль на все разделы:
-            добавление/редактирование машин, теги, стена почёта. */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminHome />} />
-          <Route path="vehicle-constructor" element={<VehicleConstructor />} />
-          <Route path="vehicle-editor" element={<VehicleEditor />} />
-          <Route path="tags" element={<TagsManager />} />
-          <Route path="credits" element={<CreditsConstructorAdmin />} />
-        </Route>
+      <Suspense fallback={<div className="min-h-screen bg-base" />}>
+        <Routes>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminHome />} />
+            <Route path="vehicle-constructor" element={<VehicleConstructor />} />
+            <Route path="vehicle-editor" element={<VehicleEditor />} />
+            <Route path="tags" element={<TagsManager />} />
+            <Route path="credits" element={<CreditsConstructorAdmin />} />
+            <Route path="audit" element={<AuditLog />} />
+          </Route>
 
-        <Route
-          path="*"
-          element={
-            <div className="min-h-screen bg-base text-ink">
-              <Header />
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/category/:slug" element={<Category />} />
-                <Route path="/vehicle/:slug" element={<VehicleDetail />} />
-                <Route path="/credits" element={<CreditsWall />} />
-                <Route path="/provider/:id" element={<ProviderDetail />} />
-                <Route path="/favorites" element={<Favorites />} />
-              </Routes>
-            </div>
-          }
-        />
-      </Routes>
-      <Analytics/>
+          <Route
+            path="*"
+            element={
+              <div className="min-h-screen bg-base text-ink">
+                <Header />
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/category/:slug" element={<Category />} />
+                  <Route path="/vehicle/:slug" element={<VehicleDetail />} />
+                  <Route path="/color-search" element={<ColorSearch />} />
+                  <Route path="/credits" element={<CreditsWall />} />
+                  <Route path="/provider/:id" element={<ProviderDetail />} />
+                  <Route path="/favorites" element={<Favorites />} />
+                </Routes>
+              </div>
+            }
+          />
+        </Routes>
+      </Suspense>
+      <Analytics />
     </>
   );
 }

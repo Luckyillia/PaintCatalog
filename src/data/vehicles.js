@@ -1,11 +1,5 @@
 // Реестр машин читается из Supabase (таблица vehicles). Категории
 // остаются статикой. Теги — отдельно в src/data/tags.js / TagsContext.
-//
-// Помимо обычного публичного чтения (fetchVehiclesFromSupabase — с
-// кэшем, для сайта), здесь есть блок функций для админки
-// (adminFetchVehicles / adminSaveVehicle / adminDeleteVehicle) — они
-// всегда идут в Supabase напрямую, без кэша, и используются в
-// src/pages/admin/VehicleEditor.jsx и src/components/admin/VehicleForm.jsx.
 
 import { supabaseRest } from "../lib/supabase";
 import { categories, getCategory } from "./categories";
@@ -21,6 +15,7 @@ function mapRow(row) {
     tags: row.tags || [],
     image: row.image || "",
     colors: row.colors || [],
+    createdAt: row.created_at || "",
     editedBy: row.edited_by || "",
     editedAt: row.edited_at || row.created_at || "",
   };
@@ -29,8 +24,6 @@ function mapRow(row) {
 let _cache = null;
 let _pending = null;
 
-// Подписчики на сброс кэша (VehiclesProvider подписывается, чтобы
-// публичный каталог перезагружался сам после правок в админке).
 const _listeners = new Set();
 
 export function subscribeVehiclesInvalidation(fn) {
@@ -60,9 +53,6 @@ export function getCachedVehicles() {
   return _cache ?? [];
 }
 
-// Сбрасывает кэш публичного каталога и уведомляет подписчиков — вызывается
-// после любой правки в админке (создание/редактирование/удаление машины),
-// чтобы сайт сразу подхватил свежие данные, без перезагрузки страницы.
 export function clearVehiclesCache() {
   _cache = null;
   _listeners.forEach((fn) => fn());
@@ -96,17 +86,12 @@ export function getColorAccentHex(color) {
   return color.accentHex ?? null;
 }
 
-// --- админка: список (с тем же кэшем, что и публичный сайт — иначе
-// список тормозит на каждое переключение вкладки в /admin, т.к.
-// компонент вкладки размонтируется и монтируется заново) + запись/удаление
+// --- админка ---------------------------------------------------------
 
 export async function adminFetchVehicles(forceRefresh = false) {
   return fetchVehiclesFromSupabase(forceRefresh);
 }
 
-// Upsert по slug — если машина с таким slug уже есть, запись полностью
-// перезаписывается (повторная публикация того же slug = редактирование).
-// Запись идёт через сервер (api/admin-db.js), edited_by ставит сервер.
 export async function adminSaveVehicle(vehicle) {
   await adminDb("vehicles", "upsert", {
     rows: [

@@ -1,6 +1,5 @@
 // Общие текстовые утилиты для админки (конструктор машины, редактор
-// машин, теги). Перенесены сюда из старого src/constructor/constructor-source.html
-// без изменения логики — просто теперь это обычный ES-модуль.
+// машин, теги).
 
 const TRANSLIT_MAP = {
   а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "e", ж: "zh", з: "z", и: "i",
@@ -17,9 +16,6 @@ export function transliterateStr(str) {
     .join("");
 }
 
-// Приводит произвольную строку (в т.ч. кириллицу) к формату slug/id,
-// который использует весь остальной сайт: строчные латинские буквы,
-// цифры, дефисы.
 export function sanitizeSlug(value, fallback = "") {
   const v = transliterateStr(value)
     .replace(/[^a-z0-9-]+/g, "-")
@@ -28,11 +24,18 @@ export function sanitizeSlug(value, fallback = "") {
   return v || fallback;
 }
 
+// "abc" -> "#AABBCC", "ff0000" -> "#FF0000", "#ff0000" -> "#FF0000"
 export function normalizeHex(value) {
   let v = (value || "").trim();
   if (!v) return "";
   if (v[0] !== "#") v = "#" + v;
-  return v.toUpperCase();
+  v = v.toUpperCase();
+  if (/^#[0-9A-F]{3}$/.test(v)) v = "#" + v[1] + v[1] + v[2] + v[2] + v[3] + v[3];
+  return v;
+}
+
+export function isValidHex(value) {
+  return typeof value === "string" && /^#[0-9A-Fa-f]{6}$/.test(value);
 }
 
 export function hslToHex(h, s, l) {
@@ -45,8 +48,6 @@ export function hslToHex(h, s, l) {
   return `#${toHex(f(0))}${toHex(f(8))}${toHex(f(4))}`;
 }
 
-// Золотой угол — используется, чтобы автоматически раздавать новым
-// тегам разные, хорошо различимые цвета (как было в старом конструкторе).
 export const GOLDEN_ANGLE = 137.508;
 
 let uidCounter = 0;
@@ -54,7 +55,6 @@ export function nextUid() {
   uidCounter += 1;
   return `row-${uidCounter}-${Date.now()}`;
 }
-
 
 export function formatRelativeTime(isoString) {
   if (!isoString) return "";

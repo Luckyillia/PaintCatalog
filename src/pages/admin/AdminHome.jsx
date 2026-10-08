@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { PlusCircle, PenSquare, Tags, Award, ArrowRight } from "lucide-react";
+import { PlusCircle, PenSquare, Tags, Award, ArrowRight, History } from "lucide-react";
 
 const CARDS = [
   {
@@ -26,6 +26,12 @@ const CARDS = [
     title: "Стена почёта",
     desc: "Блоки и записи благодарностей.",
   },
+  {
+    to: "/admin/audit",
+    icon: History,
+    title: "Журнал изменений",
+    desc: "Кто, что и когда менял — со значениями «было / стало».",
+  },
 ];
 
 export default function AdminHome() {
@@ -48,10 +54,7 @@ export default function AdminHome() {
               </h2>
               <p className="font-body text-xs text-mute mt-1">{card.desc}</p>
             </div>
-            <ArrowRight
-              size={16}
-              className="text-mute group-hover:text-signal transition-colors shrink-0 mt-2"
-            />
+            <ArrowRight size={16} className="text-mute group-hover:text-signal transition-colors shrink-0 mt-2" />
           </Link>
         ))}
       </div>

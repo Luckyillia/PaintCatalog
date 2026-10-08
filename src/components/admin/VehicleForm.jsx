@@ -4,7 +4,7 @@ import { categories } from "../../data/categories";
 import { useTagsContext } from "../../context/TagsContext";
 import { adminSaveVehicle, clearVehiclesCache } from "../../data/vehicles";
 import { uploadToCloudinary } from "../../lib/cloudinary";
-import { sanitizeSlug, nextUid } from "../../lib/textUtils";
+import { sanitizeSlug, nextUid, isValidHex } from "../../lib/textUtils";
 import ImageUploadField from "./ImageUploadField";
 import ColorRow from "./ColorRow";
 
@@ -38,9 +38,26 @@ function emptyColorRow() {
   };
 }
 
-// initial — существующая машина (режим редактирования) или null/undefined
-// (режим создания). onSaved(vehicle) вызывается после успешной записи
-// в Supabase.
+// Возвращает текст ошибки или "" если всё хорошо.
+function validateColors(colors) {
+  const ids = colors.map((c) => sanitizeSlug(c.id, "color"));
+
+  // Фото цвета кладётся в Cloudinary под public_id = id цвета с overwrite,
+  // поэтому одинаковые id (или "main" — обложка) затирают чужие фото.
+  const dup = ids.find((id, i) => ids.indexOf(id) !== i);
+  if (dup) return `ID цвета «${dup}» повторяется — у каждого цвета ID должен быть уникальным, иначе фото затрут друг друга.`;
+  if (ids.includes("main")) return "ID «main» зарезервирован под обложку машины — переименуй цвет.";
+
+  for (const c of colors) {
+    const label = c.name.trim() || c.id;
+    if (!isValidHex(c.hex1)) return `Цвет «${label}»: Hex 1 должен быть вида #RRGGBB.`;
+    if (c.twoTone && !isValidHex(c.hex2)) return `Цвет «${label}»: Hex 2 должен быть вида #RRGGBB.`;
+    if (c.hasAccent && !isValidHex(c.accentHex)) return `Цвет «${label}»: Hex вставок должен быть вида #RRGGBB.`;
+  }
+  return "";
+}
+
+// initial — существующая машина (режим редактирования) или null (создание).
 export default function VehicleForm({ initial, onSaved }) {
   const isEdit = Boolean(initial);
   const { tags: allTags, tagGroups, loading: tagsLoading } = useTagsContext();
@@ -57,6 +74,11 @@ export default function VehicleForm({ initial, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
   const [statusError, setStatusError] = useState(false);
+
+  function fail(message) {
+    setStatusError(true);
+    setStatus(message);
+  }
 
   function handleNameChange(val) {
     setName(val);
@@ -92,26 +114,13 @@ export default function VehicleForm({ initial, onSaved }) {
 
   async function handleSave() {
     const cleanSlug = sanitizeSlug(slug, "");
-    if (!cleanSlug) {
-      setStatusError(true);
-      setStatus("Укажи slug машины");
-      return;
-    }
-    if (!name.trim()) {
-      setStatusError(true);
-      setStatus("Укажи название машины");
-      return;
-    }
-    if (colors.length === 0) {
-      setStatusError(true);
-      setStatus("Добавь хотя бы один цвет окраски");
-      return;
-    }
-    if (colors.some((c) => !c.name.trim())) {
-      setStatusError(true);
-      setStatus("У каждого цвета должно быть название");
-      return;
-    }
+    if (!cleanSlug) return fail("Укажи slug машины");
+    if (!name.trim()) return fail("Укажи название машины");
+    if (colors.length === 0) return fail("Добавь хотя бы один цвет окраски");
+    if (colors.some((c) => !c.name.trim())) return fail("У каждого цвета должно быть название");
+
+    const colorsError = validateColors(colors);
+    if (colorsError) return fail(colorsError);
 
     setSaving(true);
     setStatusError(false);
@@ -134,12 +143,12 @@ export default function VehicleForm({ initial, onSaved }) {
         }
         const record = { id, name: row.name.trim(), image: imageUrl };
         if (row.twoTone) {
-          record.hexes = [row.hex1 || "#000000", row.hex2 || "#000000"];
+          record.hexes = [row.hex1.toUpperCase(), row.hex2.toUpperCase()];
         } else {
-          record.hex = row.hex1 || "#000000";
+          record.hex = row.hex1.toUpperCase();
         }
         if (row.hasAccent && row.accentHex) {
-          record.accentHex = row.accentHex;
+          record.accentHex = row.accentHex.toUpperCase();
         }
         colorRecords.push(record);
       }
@@ -161,8 +170,7 @@ export default function VehicleForm({ initial, onSaved }) {
       setStatus(isEdit ? "Сохранено." : "Опубликовано!");
       onSaved?.(vehicle);
     } catch (err) {
-      setStatusError(true);
-      setStatus("Ошибка: " + err.message);
+      fail("Ошибка: " + err.message);
     } finally {
       setSaving(false);
     }
@@ -174,9 +182,7 @@ export default function VehicleForm({ initial, onSaved }) {
         <h2 className="font-display text-lg tracking-wide text-ink mb-4">Основное</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label className="font-body text-xs uppercase tracking-[0.1em] text-mute mb-1 block">
-              Категория
-            </label>
+            <label className="font-body text-xs uppercase tracking-[0.1em] text-mute mb-1 block">Категория</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -214,12 +220,7 @@ export default function VehicleForm({ initial, onSaved }) {
         </div>
 
         <div className="mt-4">
-          <ImageUploadField
-            label="Фото карточки (обложка)"
-            value={mainImage}
-            onChange={setMainImage}
-            ratio="4:3"
-          />
+          <ImageUploadField label="Фото карточки (обложка)" value={mainImage} onChange={setMainImage} ratio="4:3" />
         </div>
       </div>
 
@@ -253,14 +254,11 @@ export default function VehicleForm({ initial, onSaved }) {
       <div className="border border-hair rounded-lg bg-panel p-5">
         <h2 className="font-display text-lg tracking-wide text-ink mb-4">Теги</h2>
         <p className="font-body text-xs text-mute mb-4">
-          Только выбор из уже существующих тегов. Добавить новый тег или группу — на странице
-          «Теги и группы».
+          Только выбор из уже существующих тегов. Добавить новый тег или группу — на странице «Теги и группы».
         </p>
         {tagsLoading && <p className="font-body text-xs text-mute">Загружаю теги...</p>}
         {!tagsLoading && tagGroups.length === 0 && (
-          <p className="font-body text-xs text-mute">
-            Тегов пока нет — добавь их на странице «Теги и группы».
-          </p>
+          <p className="font-body text-xs text-mute">Тегов пока нет — добавь их на странице «Теги и группы».</p>
         )}
         <div className="flex flex-col gap-4">
           {tagGroups.map((group) => {
@@ -268,9 +266,7 @@ export default function VehicleForm({ initial, onSaved }) {
             if (groupTags.length === 0) return null;
             return (
               <div key={group.id}>
-                <p className="font-body text-xs uppercase tracking-[0.1em] text-mute mb-2">
-                  {group.label}
-                </p>
+                <p className="font-body text-xs uppercase tracking-[0.1em] text-mute mb-2">{group.label}</p>
                 <div className="flex flex-wrap gap-2">
                   {groupTags.map((tag) => {
                     const active = selectedTags.has(tag.id);
@@ -307,11 +303,7 @@ export default function VehicleForm({ initial, onSaved }) {
           {saving ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
           {isEdit ? "Сохранить изменения" : "Опубликовать"}
         </button>
-        {status && (
-          <span className={`font-body text-sm ${statusError ? "text-amber" : "text-signal"}`}>
-            {status}
-          </span>
-        )}
+        {status && <span className={`font-body text-sm ${statusError ? "text-amber" : "text-signal"}`}>{status}</span>}
       </div>
     </div>
   );

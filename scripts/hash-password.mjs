@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// Генерирует SHA-256 хэш пароля админа для переменной ADMIN_USERS.
+// Генерирует запись для переменной ADMIN_USERS (scrypt с солью).
 // Использование: node scripts/hash-password.mjs "Имя" "мой-пароль"
 
-import { createHash } from "node:crypto";
+import { randomBytes, scryptSync } from "node:crypto";
 
 const [name, password] = process.argv.slice(2);
 
@@ -11,9 +11,10 @@ if (!name || !password) {
   process.exit(1);
 }
 
-const hash = createHash("sha256").update(password, "utf8").digest("hex");
+const salt = randomBytes(16);
+const hash = scryptSync(password, salt, 64).toString("hex");
+const stored = `scrypt-${salt.toString("hex")}-${hash}`;
 
-console.log("\nХэш пароля:");
-console.log(hash);
 console.log("\nЗапись для ADMIN_USERS (несколько админов — через точку с запятой):");
-console.log(`${name}:${hash}\n`);
+console.log(`${name}:${stored}\n`);
+console.log("Старые sha256-хэши тоже продолжают работать — менять можно по одному.\n");

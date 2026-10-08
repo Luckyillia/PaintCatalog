@@ -1,11 +1,7 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { fetchTagsFromSupabase, subscribeTagsInvalidation } from "../data/tags";
+import { TagsContext } from "./TagsContext";
 
-const TagsContext = createContext(null);
-
-// Оборачивает <App /> в main.jsx — теги грузятся из Supabase один раз
-// при монтировании приложения, а не заново на каждой странице.
-// После правок в админке (clearTagsCache) провайдер перезагружает теги сам.
 export function TagsProvider({ children }) {
   const [data, setData] = useState(null); // null = ещё не загружены
   const [error, setError] = useState("");
@@ -36,12 +32,4 @@ export function TagsProvider({ children }) {
       {children}
     </TagsContext.Provider>
   );
-}
-
-export function useTagsContext() {
-  const ctx = useContext(TagsContext);
-  if (!ctx) {
-    throw new Error("useTagsContext должен вызываться внутри <TagsProvider>");
-  }
-  return ctx;
 }
