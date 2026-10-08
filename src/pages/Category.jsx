@@ -8,8 +8,15 @@ import VehicleCard from "../components/VehicleCard";
 import TagFilterBar from "../components/TagFilterBar";
 import { Search, Loader2 } from "lucide-react";
 
+// Внешний компонент нужен только ради key={slug}: при переходе в другую
+// категорию React пересоздаёт CategoryView, и выбранные теги и поиск
+// сбрасываются сами (без useEffect).
 export default function Category() {
   const { slug } = useParams();
+  return <CategoryView key={slug} slug={slug} />;
+}
+
+function CategoryView({ slug }) {
   const category = getCategory(slug);
   const { vehicles, loading, error } = useVehiclesContext();
   const { tags } = useTagsContext();

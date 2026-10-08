@@ -1,14 +1,24 @@
 import { supabaseRest } from "../lib/supabase";
-import { currentEditor } from "../lib/adminIdentity"; 
+import { adminDb } from "../lib/adminApi";
 
 // Теги живут в Supabase (таблицы tag_groups и tags). Публичное чтение —
 // с кэшем (fetchTagsFromSupabase, для TagsContext/сайта). Ниже — блок
 // CRUD-функций для админки (src/pages/admin/TagsManager.jsx): они всегда
-// идут в Supabase напрямую и после каждой правки сбрасывают кэш, чтобы
-// сайт и форма машины подхватили изменения.
+// идут в Supabase напрямую и после каждой правки сбрасывают кэш (и
+// уведомляют TagsProvider), чтобы сайт и форма машины подхватили
+// изменения без перезагрузки страницы.
 
 let _cache = null;
 let _pending = null;
+
+const _listeners = new Set();
+
+export function subscribeTagsInvalidation(fn) {
+  _listeners.add(fn);
+  return () => {
+    _listeners.delete(fn);
+  };
+}
 
 export async function fetchTagsFromSupabase() {
   if (_cache) return _cache;
@@ -42,6 +52,7 @@ export function getCachedTags() {
 
 export function clearTagsCache() {
   _cache = null;
+  _listeners.forEach((fn) => fn());
 }
 
 export function getTag(tags, id) {
@@ -78,73 +89,55 @@ export async function adminFetchTags() {
   }));
 }
 
+// Запись идёт через сервер (api/admin-db.js): он проверяет токен админа,
+// пишет ключом service_role и сам ставит edited_by.
+
 export async function createTagGroup(group) {
-  await supabaseRest("tag_groups", {
-    method: "POST",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify([
-      { id: group.id, label: group.label, sort_order: group.sortOrder ?? 0, edited_by: currentEditor() },
-    ]),
+  await adminDb("tag_groups", "insert", {
+    rows: [{ id: group.id, label: group.label, sort_order: group.sortOrder ?? 0 }],
   });
   clearTagsCache();
 }
 
 export async function updateTagGroup(id, patch) {
-  const body = { edited_by: currentEditor() };
+  const body = {};
   if (patch.label !== undefined) body.label = patch.label;
   if (patch.sortOrder !== undefined) body.sort_order = patch.sortOrder;
-  await supabaseRest(`tag_groups?id=eq.${encodeURIComponent(id)}`, {
-    method: "PATCH",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify(body),
-  });
+  await adminDb("tag_groups", "update", { keyValue: id, patch: body });
   clearTagsCache();
 }
 
 export async function deleteTagGroup(id) {
-  await supabaseRest(`tag_groups?id=eq.${encodeURIComponent(id)}`, {
-    method: "DELETE",
-    headers: { Prefer: "return=minimal" },
-  });
+  await adminDb("tag_groups", "delete", { keyValue: id });
   clearTagsCache();
 }
 
 export async function createTag(tag) {
-  await supabaseRest("tags", {
-    method: "POST",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify([
+  await adminDb("tags", "insert", {
+    rows: [
       {
         id: tag.id,
         label: tag.label,
         group_id: tag.group,
         color: tag.color,
         sort_order: tag.sortOrder ?? 0,
-        edited_by: currentEditor(),
       },
-    ]),
+    ],
   });
   clearTagsCache();
 }
 
 export async function updateTag(id, patch) {
-  const body = { edited_by: currentEditor() };
+  const body = {};
   if (patch.label !== undefined) body.label = patch.label;
   if (patch.group !== undefined) body.group_id = patch.group;
   if (patch.color !== undefined) body.color = patch.color;
   if (patch.sortOrder !== undefined) body.sort_order = patch.sortOrder;
-  await supabaseRest(`tags?id=eq.${encodeURIComponent(id)}`, {
-    method: "PATCH",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify(body),
-  });
+  await adminDb("tags", "update", { keyValue: id, patch: body });
   clearTagsCache();
 }
 
 export async function deleteTag(id) {
-  await supabaseRest(`tags?id=eq.${encodeURIComponent(id)}`, {
-    method: "DELETE",
-    headers: { Prefer: "return=minimal" },
-  });
+  await adminDb("tags", "delete", { keyValue: id });
   clearTagsCache();
 }

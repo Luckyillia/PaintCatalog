@@ -6,6 +6,9 @@ import PhotoSlot from "./PhotoSlot";
 export default function CategoryCard({ category }) {
   const { vehicles } = useVehiclesContext();
   const count = getVehiclesByCategory(vehicles, category.slug).length;
+  const alt = category.alt
+    ? `${category.name}. Made by ${category.alt}`
+    : category.name;
 
   return (
     <Link
@@ -14,7 +17,7 @@ export default function CategoryCard({ category }) {
     >
       <PhotoSlot
         src={category.image}
-        alt={category.name + ". Made by " + category.alt}
+        alt={alt}
         className="h-24"
         label="Фото категории"
       />

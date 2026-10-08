@@ -102,6 +102,16 @@ export default function VehicleForm({ initial, onSaved }) {
       setStatus("Укажи название машины");
       return;
     }
+    if (colors.length === 0) {
+      setStatusError(true);
+      setStatus("Добавь хотя бы один цвет окраски");
+      return;
+    }
+    if (colors.some((c) => !c.name.trim())) {
+      setStatusError(true);
+      setStatus("У каждого цвета должно быть название");
+      return;
+    }
 
     setSaving(true);
     setStatusError(false);
@@ -224,6 +234,11 @@ export default function VehicleForm({ initial, onSaved }) {
               onRemove={() => removeColor(c.uid)}
             />
           ))}
+          {colors.length === 0 && (
+            <p className="font-body text-xs text-amber">
+              Нужен хотя бы один цвет — без него машину сохранить нельзя.
+            </p>
+          )}
         </div>
         <button
           type="button"

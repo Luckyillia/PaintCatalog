@@ -2,21 +2,34 @@
 # .env НЕ коммить в git — добавь его в .gitignore.
 
 # ── Браузерные (попадают в собранный JS сайта — это ожидаемо и ОК,
-#    потому что anon-ключ Supabase умеет только INSERT (RLS)) ───────────
-
-# Пароль на страницу /vehicle-constructor. НЕ сам пароль, а его SHA-256
-# хэш — получить: node scripts/hash-password.mjs "твой-пароль"
-VITE_CONSTRUCTOR_PASSWORD_HASH=
+#    потому что после sql/lock-down-rls.sql anon-ключ умеет только
+#    читать таблицы) ───────────────────────────────────────────────────
 
 # Supabase → Project Settings → API
 VITE_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
 
+# Необязательно. Абсолютный адрес сайта для og:image (превью ссылки в
+# соцсетях), например https://osnova.vercel.app. Если пусто, на Vercel
+# подставится production-домен проекта автоматически.
+VITE_SITE_URL=
+
 # ── Серверные (НЕТ префикса VITE_ — в браузер никогда не попадают).
-#    Используются: (1) serverless-функцией api/cloudinary-sign.js, которая
-#    выдаёт конструктору подпись для signed-загрузки фото; (2) локальным
-#    scripts/migrate-images-to-cloudinary.mjs. На проде задаются в
-#    Vercel → Project Settings → Environment Variables, а не в .env. ────
+#    На проде задаются в Vercel → Project Settings → Environment
+#    Variables, локально — в .env (их читает и `npm run dev`).
+
+# Админы: "Имя:sha256хэш;Другое:sha256хэш". Хэш и готовую запись даёт
+#   node scripts/hash-password.mjs "Имя" "пароль"
+# Имя из этой строки подставляется в лог правок (edited_by).
+ADMIN_USERS=
+
+# Случайная строка от 32 символов — подпись токенов сессии, например:
+#   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+# Если сменить её, все текущие сессии админов сразу разлогинятся.
+ADMIN_SESSION_SECRET=
+
+# Остальное ниже используется serverless-функциями api/* и локальными
+# скриптами scripts/migrate-*.mjs.
 
 # Cloudinary → Dashboard (Cloud name) и Settings → Access Keys
 CLOUDINARY_CLOUD_NAME=
@@ -27,12 +40,13 @@ CLOUDINARY_API_SECRET=
 # {CLOUDINARY_FOLDER}/vehicles/{category}/{slug}/{main|id-цвета}
 CLOUDINARY_FOLDER=osnova
 
-# Можно не задавать — если пусто, скрипт возьмёт VITE_SUPABASE_URL выше.
+# Можно не задавать — если пусто, возьмётся VITE_SUPABASE_URL выше.
 SUPABASE_URL=
 
 # ВАЖНО: тут нужен service_role key (не anon!) — он даёт полный доступ
-# к таблице в обход RLS, поэтому используется только локально, никогда
-# в браузере/конструкторе и никогда не коммитится в репозиторий.
+# к таблицам в обход RLS. Через него пишет api/admin-db.js (после проверки
+# токена админа) и локальные скрипты миграции. Никогда в браузере и
+# никогда не коммитится в репозиторий.
 # НИКОГДА не переименовывай в VITE_SUPABASE_SERVICE_KEY — с префиксом
 # VITE_ он попал бы в код сайта и стал бы виден всем.
 SUPABASE_SERVICE_KEY=eyJhbGciOi...

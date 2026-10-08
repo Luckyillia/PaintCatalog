@@ -1,9 +1,9 @@
 import { getVehicle, getCachedVehicles } from "./vehicles";
 import { supabaseRest } from "../lib/supabase";
-import { currentEditor } from "../lib/adminIdentity";
+import { adminDb } from "../lib/adminApi";
 
 // Стена почёта хранится в Supabase (таблицы credit_groups и
-// credit_entries). Редактируется через /credits-constructor. Здесь
+// credit_entries). Редактируется через /admin/credits. Здесь
 // остались только функции чтения/записи и чистая логика (getProviderNote
 // и т.д.).
 //
@@ -38,7 +38,7 @@ function mapEntry(row) {
     link: row.link || "",
     providerId: row.provider_id || "",
     vehicleSlugs: row.vehicle_slugs || [],
-    sortOrder: row.sortOrder ?? 0,
+    sortOrder: row.sort_order ?? 0,
     editedBy: row.edited_by || "",
     editedAt: row.edited_at || "",
   };
@@ -55,7 +55,6 @@ function entryToRow(entry) {
     provider_id: entry.providerId || null,
     vehicle_slugs: entry.vehicleSlugs?.length ? entry.vehicleSlugs : null,
     sort_order: entry.sortOrder ?? 0,
-    edited_by: currentEditor(),
   };
 }
 
@@ -98,62 +97,37 @@ export function getProviderNote(entry) {
   return names.length > 0 ? names.join(", ") : "";
 }
 
-// --- запись (используется только в /credits-constructor) ----------------
+// --- запись (используется только в /admin/credits) ----------------------
+// Идёт через сервер (api/admin-db.js): токен админа, service_role,
+// edited_by ставится на сервере.
 
 export async function createGroup(group) {
-  const rows = await supabaseRest("credit_groups", {
-    method: "POST",
-    headers: { Prefer: "return=representation" },
-    body: JSON.stringify([
-      {
-        id: group.id,
-        title: group.title,
-        sort_order: group.sortOrder ?? 0,
-        edited_by: currentEditor(),
-      },
-    ]),
+  const rows = await adminDb("credit_groups", "insert", {
+    rows: [{ id: group.id, title: group.title, sort_order: group.sortOrder ?? 0 }],
   });
   return mapGroup(rows[0]);
 }
 
 export async function updateGroup(id, patch) {
-  const body = { edited_by: currentEditor() };
+  const body = {};
   if (patch.title !== undefined) body.title = patch.title;
   if (patch.sortOrder !== undefined) body.sort_order = patch.sortOrder;
-  await supabaseRest(`credit_groups?id=eq.${encodeURIComponent(id)}`, {
-    method: "PATCH",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify(body),
-  });
+  await adminDb("credit_groups", "update", { keyValue: id, patch: body });
 }
 
 export async function deleteGroup(id) {
-  await supabaseRest(`credit_groups?id=eq.${encodeURIComponent(id)}`, {
-    method: "DELETE",
-    headers: { Prefer: "return=minimal" },
-  });
+  await adminDb("credit_groups", "delete", { keyValue: id });
 }
 
 export async function createEntry(entry) {
-  const rows = await supabaseRest("credit_entries", {
-    method: "POST",
-    headers: { Prefer: "return=representation" },
-    body: JSON.stringify([entryToRow(entry)]),
-  });
+  const rows = await adminDb("credit_entries", "insert", { rows: [entryToRow(entry)] });
   return mapEntry(rows[0]);
 }
 
 export async function updateEntry(id, entry) {
-  await supabaseRest(`credit_entries?id=eq.${encodeURIComponent(id)}`, {
-    method: "PATCH",
-    headers: { Prefer: "return=minimal" },
-    body: JSON.stringify(entryToRow(entry)),
-  });
+  await adminDb("credit_entries", "update", { keyValue: id, patch: entryToRow(entry) });
 }
 
 export async function deleteEntry(id) {
-  await supabaseRest(`credit_entries?id=eq.${encodeURIComponent(id)}`, {
-    method: "DELETE",
-    headers: { Prefer: "return=minimal" },
-  });
+  await adminDb("credit_entries", "delete", { keyValue: id });
 }

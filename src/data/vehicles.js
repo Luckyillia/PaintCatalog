@@ -9,7 +9,7 @@
 
 import { supabaseRest } from "../lib/supabase";
 import { categories, getCategory } from "./categories";
-import { currentEditor } from "../lib/adminIdentity";
+import { adminDb } from "../lib/adminApi";
 
 export { categories, getCategory };
 
@@ -28,6 +28,17 @@ function mapRow(row) {
 
 let _cache = null;
 let _pending = null;
+
+// Подписчики на сброс кэша (VehiclesProvider подписывается, чтобы
+// публичный каталог перезагружался сам после правок в админке).
+const _listeners = new Set();
+
+export function subscribeVehiclesInvalidation(fn) {
+  _listeners.add(fn);
+  return () => {
+    _listeners.delete(fn);
+  };
+}
 
 export async function fetchVehiclesFromSupabase(forceRefresh = false) {
   if (forceRefresh) _cache = null;
@@ -49,11 +60,12 @@ export function getCachedVehicles() {
   return _cache ?? [];
 }
 
-// Сбрасывает кэш публичного каталога — вызывается после любой правки в
-// админке (создание/редактирование/удаление машины), чтобы сайт
-// подхватил свежие данные при следующей загрузке VehiclesContext.
+// Сбрасывает кэш публичного каталога и уведомляет подписчиков — вызывается
+// после любой правки в админке (создание/редактирование/удаление машины),
+// чтобы сайт сразу подхватил свежие данные, без перезагрузки страницы.
 export function clearVehiclesCache() {
   _cache = null;
+  _listeners.forEach((fn) => fn());
 }
 
 export function getVehicle(vehicles, slug) {
@@ -93,13 +105,11 @@ export async function adminFetchVehicles(forceRefresh = false) {
 }
 
 // Upsert по slug — если машина с таким slug уже есть, запись полностью
-// перезаписывается (тот же принцип, что был в старом конструкторе:
-// повторная публикация того же slug = редактирование).
+// перезаписывается (повторная публикация того же slug = редактирование).
+// Запись идёт через сервер (api/admin-db.js), edited_by ставит сервер.
 export async function adminSaveVehicle(vehicle) {
-  await supabaseRest("vehicles?on_conflict=slug", {
-    method: "POST",
-    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-    body: JSON.stringify([
+  await adminDb("vehicles", "upsert", {
+    rows: [
       {
         slug: vehicle.slug,
         category: vehicle.category,
@@ -107,16 +117,11 @@ export async function adminSaveVehicle(vehicle) {
         tags: vehicle.tags || [],
         image: vehicle.image || "",
         colors: vehicle.colors || [],
-        edited_by: currentEditor(),
       },
-    ]),
+    ],
   });
 }
 
-
 export async function adminDeleteVehicle(slug) {
-  await supabaseRest(`vehicles?slug=eq.${encodeURIComponent(slug)}`, {
-    method: "DELETE",
-    headers: { Prefer: "return=minimal" },
-  });
+  await adminDb("vehicles", "delete", { keyValue: slug });
 }

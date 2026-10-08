@@ -17,7 +17,7 @@ export default function VehicleDetail() {
   const { addRecentlyViewed } = useFavorites();
   const vehicle = getVehicle(vehicles, slug);
   const [activeId, setActiveId] = useState();
-  const currentActiveId = activeId ?? vehicle?.colors[0]?.id;
+  const currentActiveId = activeId ?? vehicle?.colors?.[0]?.id;
 
   useEffect(() => {
     if (vehicle?.slug) addRecentlyViewed(vehicle.slug);
@@ -55,6 +55,28 @@ export default function VehicleDetail() {
   }
 
   const category = getCategory(vehicle.category);
+  const breadcrumbItems = [
+    { label: "Главная", to: "/" },
+    { label: category?.name ?? "Категория", to: `/category/${vehicle.category}` },
+    { label: vehicle.name },
+  ];
+
+  // У машины может не быть ни одного цвета (например, запись создана
+  // старой версией формы) — показываем заглушку вместо падения страницы.
+  if (!vehicle.colors || vehicle.colors.length === 0) {
+    return (
+      <div className="max-w-6xl mx-auto px-5 py-10">
+        <Breadcrumbs items={breadcrumbItems} />
+        <h1 className="font-display text-3xl tracking-wide text-ink mb-3">
+          {vehicle.name}
+        </h1>
+        <p className="font-body text-mute">
+          Для этой машины пока не добавлено ни одного цвета окраски.
+        </p>
+      </div>
+    );
+  }
+
   const activeColor =
     vehicle.colors.find((c) => c.id === currentActiveId) ?? vehicle.colors[0];
   const activeHexes = getColorHexes(activeColor);
@@ -62,13 +84,7 @@ export default function VehicleDetail() {
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-10">
-      <Breadcrumbs
-        items={[
-          { label: "Главная", to: "/" },
-          { label: category?.name ?? "Категория", to: `/category/${vehicle.category}` },
-          { label: vehicle.name },
-        ]}
-      />
+      <Breadcrumbs items={breadcrumbItems} />
 
       <div className="flex items-start justify-between gap-4 mb-3">
         <h1 className="font-display text-3xl tracking-wide text-ink">
