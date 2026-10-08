@@ -12,7 +12,7 @@ export default function Header() {
     function handleKey(e) {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setSearchOpen(true);
+        setSearchOpen((open) => !open);
       }
     }
     window.addEventListener("keydown", handleKey);

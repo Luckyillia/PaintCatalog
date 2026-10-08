@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { useVehiclesContext } from "../context/VehiclesContext";
@@ -13,6 +13,24 @@ export default function SearchPalette({ onClose }) {
   const { tags } = useTagsContext();
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
+  const inputRef = useRef(null);
+
+  // фокус в поле при открытии
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  // Esc работает всегда, независимо от того, где сейчас фокус
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    }
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [onClose]);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase().replace(/^#/, "");
