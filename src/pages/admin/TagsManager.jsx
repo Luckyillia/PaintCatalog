@@ -10,6 +10,7 @@ import {
   deleteTag,
 } from "../../data/tags";
 import { sanitizeSlug, hslToHex, GOLDEN_ANGLE } from "../../lib/textUtils";
+import { RowsSkeleton } from "../../components/Skeleton";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 
 function TagRow({ tag, groups, onChanged }) {
@@ -268,12 +269,7 @@ export default function TagsManager() {
 
       {error && <p className="font-body text-sm text-amber mb-4">Ошибка загрузки: {error}</p>}
 
-      {!groups && !error && (
-        <div className="flex items-center gap-2 font-body text-sm text-mute">
-          <Loader2 size={16} className="animate-spin" />
-          Загружаю...
-        </div>
-      )}
+      {!groups && !error && <RowsSkeleton count={3} className="h-40" />}
 
       {groups && tags && (
         <div className="flex flex-col gap-6">

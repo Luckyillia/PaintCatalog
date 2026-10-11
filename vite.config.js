@@ -86,5 +86,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), siteUrlPlugin(siteUrl), apiDevPlugin(env)],
+    // В проде исходники через DevTools не восстанавливаются
+    build: { sourcemap: false },
   }
 })

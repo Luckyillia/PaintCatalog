@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Search, Loader2, Trash2, ArrowLeft, RefreshCw } from "lucide-react";
+import { Search, Trash2, ArrowLeft, RefreshCw } from "lucide-react";
 import { adminFetchVehicles, adminDeleteVehicle, clearVehiclesCache } from "../../data/vehicles";
 import VehicleForm from "../../components/admin/VehicleForm";
+import { RowsSkeleton } from "../../components/Skeleton";
 import { formatRelativeTime } from "../../lib/textUtils";
 
 export default function VehicleEditor() {
@@ -117,12 +118,7 @@ export default function VehicleEditor() {
 
       {error && <p className="font-body text-sm text-amber mb-4">Ошибка загрузки: {error}</p>}
 
-      {!vehicles && !error && (
-        <div className="flex items-center gap-2 font-body text-sm text-mute">
-          <Loader2 size={16} className="animate-spin" />
-          Загружаю...
-        </div>
-      )}
+      {!vehicles && !error && <RowsSkeleton count={6} />}
 
       {vehicles && (
         <div className="flex flex-col gap-2">

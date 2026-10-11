@@ -5,7 +5,8 @@ import { getVehicle } from "../data/vehicles";
 import { useVehiclesContext } from "../context/VehiclesContext";
 import Breadcrumbs from "../components/Breadcrumbs";
 import VehicleCard from "../components/VehicleCard";
-import { ExternalLink, Loader2 } from "lucide-react";
+import { ProviderSkeleton } from "../components/Skeleton";
+import { ExternalLink } from "lucide-react";
 
 export default function ProviderDetail() {
   const { id } = useParams();
@@ -39,12 +40,7 @@ export default function ProviderDetail() {
   }
 
   if (provider === undefined || vehiclesLoading) {
-    return (
-      <div className="max-w-6xl mx-auto px-5 py-10 flex items-center gap-2 font-body text-sm text-mute">
-        <Loader2 size={16} className="animate-spin" />
-        Загружаю...
-      </div>
-    );
+    return <ProviderSkeleton />;
   }
 
   if (!provider) {

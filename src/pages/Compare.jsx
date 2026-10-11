@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowLeftRight, Copy, Check, Loader2, X } from "lucide-react";
+import { ArrowLeftRight, Copy, Check, X } from "lucide-react";
 import Breadcrumbs from "../components/Breadcrumbs";
 import CopyHex from "../components/CopyHex";
 import PhotoSlot from "../components/PhotoSlot";
+import { VehicleGridSkeleton } from "../components/Skeleton";
 import { useCompare } from "../context/CompareContext";
 import { useVehiclesContext } from "../context/VehiclesContext";
 import { getVehicle, getColorHexes } from "../data/vehicles";
@@ -118,10 +119,7 @@ export default function Compare() {
       {error && <p className="font-body text-sm text-amber mb-4">Ошибка загрузки: {error}</p>}
 
       {loading ? (
-        <div className="flex items-center gap-2 font-body text-sm text-mute">
-          <Loader2 size={16} className="animate-spin" />
-          Загружаю...
-        </div>
+        <VehicleGridSkeleton count={3} />
       ) : entries.length === 0 ? (
         <div className="rounded-lg border border-hair bg-panel px-6 py-10 text-center">
           <span className="w-12 h-12 mx-auto rounded-md bg-signal/15 border border-signal/40 flex items-center justify-center text-signal mb-4">

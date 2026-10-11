@@ -15,7 +15,7 @@ import FavoriteButton from "../components/FavoriteButton";
 import CompareButton from "../components/CompareButton";
 import ReportButton from "../components/ReportButton";
 import SimilarColors from "../components/SimilarColors";
-import { Loader2 } from "lucide-react";
+import { VehicleDetailSkeleton } from "../components/Skeleton";
 
 const ORDERS = [
   { id: "default", label: "Как в списке" },
@@ -41,12 +41,7 @@ export default function VehicleDetail() {
   }, [vehicle?.slug, addRecentlyViewed]);
 
   if (loading) {
-    return (
-      <div className="max-w-6xl mx-auto px-5 py-10 flex items-center gap-2 font-body text-sm text-mute">
-        <Loader2 size={16} className="animate-spin" />
-        Загружаю...
-      </div>
-    );
+    return <VehicleDetailSkeleton />;
   }
 
   if (error) {

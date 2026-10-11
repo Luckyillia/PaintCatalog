@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import Header from "./components/Header";
 import CompareBar from "./components/CompareBar";
@@ -11,6 +11,7 @@ import ProviderDetail from "./pages/ProviderDetail";
 import Favorites from "./pages/Favorites";
 import ColorSearch from "./pages/ColorSearch";
 import Compare from "./pages/Compare";
+import NotFound from "./pages/NotFound";
 
 // Админка грузится отдельным чанком — обычные посетители её не скачивают.
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="credits" element={<CreditsConstructorAdmin />} />
             <Route path="reports" element={<ReportsQueue />} />
             <Route path="audit" element={<AuditLog />} />
+            <Route path="*" element={<Navigate to="/admin" replace />} />
           </Route>
 
           <Route
@@ -51,6 +53,7 @@ export default function App() {
                   <Route path="/credits" element={<CreditsWall />} />
                   <Route path="/provider/:id" element={<ProviderDetail />} />
                   <Route path="/favorites" element={<Favorites />} />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
                 <CompareBar />
               </div>

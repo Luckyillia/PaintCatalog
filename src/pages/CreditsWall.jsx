@@ -4,7 +4,8 @@ import { useVehiclesContext } from "../context/VehiclesContext";
 import { usePageTitle } from "../lib/usePageTitle";
 import Breadcrumbs from "../components/Breadcrumbs";
 import CreditCard from "../components/CreditCard";
-import { Award, Loader2 } from "lucide-react";
+import { CreditsSkeleton } from "../components/Skeleton";
+import { Award } from "lucide-react";
 
 export default function CreditsWall() {
   usePageTitle("Стена почёта");
@@ -45,12 +46,7 @@ export default function CreditsWall() {
 
       {error && <p className="font-body text-sm text-amber mb-6">Не удалось загрузить стену почёта: {error}</p>}
 
-      {!error && (!groups || vehiclesLoading) && (
-        <div className="flex items-center gap-2 font-body text-sm text-mute">
-          <Loader2 size={16} className="animate-spin" />
-          Загружаю...
-        </div>
-      )}
+      {!error && (!groups || vehiclesLoading) && <CreditsSkeleton />}
 
       {groups && !vehiclesLoading && (
         <div className="flex flex-col gap-10">

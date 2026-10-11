@@ -5,6 +5,7 @@ import { formatRelativeTime } from "../../lib/textUtils";
 import { planRollback } from "../../lib/auditRollback";
 import { clearVehiclesCache } from "../../data/vehicles";
 import { clearTagsCache } from "../../data/tags";
+import { RowsSkeleton } from "../../components/Skeleton";
 
 const TABLES = ["", "vehicles", "tags", "tag_groups", "credit_groups", "credit_entries", "reports"];
 const ACTION_LABEL = { insert: "создание", upsert: "сохранение", update: "правка", delete: "удаление" };
@@ -95,12 +96,7 @@ export default function AuditLog() {
         </p>
       )}
 
-      {!rows && !error && (
-        <div className="flex items-center gap-2 font-body text-sm text-mute">
-          <Loader2 size={16} className="animate-spin" />
-          Загружаю...
-        </div>
-      )}
+      {!rows && !error && <RowsSkeleton count={8} className="h-12" />}
 
       {rows && rows.length === 0 && <p className="font-body text-sm text-mute">Записей пока нет.</p>}
 

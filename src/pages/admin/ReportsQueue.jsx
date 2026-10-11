@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, RefreshCw, ExternalLink, Check, X, RotateCcw, Trash2 } from "lucide-react";
+import { RefreshCw, ExternalLink, Check, X, RotateCcw, Trash2 } from "lucide-react";
 import { adminFetch, adminDb } from "../../lib/adminApi";
 import { notifyReportsChanged } from "../../lib/adminEvents";
 import { formatRelativeTime } from "../../lib/textUtils";
+import { RowsSkeleton } from "../../components/Skeleton";
 
 const TABS = [
   { id: "new", label: "Новые" },
@@ -208,12 +209,7 @@ export default function ReportsQueue() {
 
       {error && <p className="font-body text-sm text-amber mb-4">Ошибка загрузки: {error}</p>}
 
-      {!rows && !error && (
-        <div className="flex items-center gap-2 font-body text-sm text-mute">
-          <Loader2 size={16} className="animate-spin" />
-          Загружаю...
-        </div>
-      )}
+      {!rows && !error && <RowsSkeleton count={3} className="h-32" />}
 
       {rows && rows.length === 0 && <p className="font-body text-sm text-mute">Здесь пусто.</p>}
 

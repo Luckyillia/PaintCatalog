@@ -8,7 +8,8 @@ import Breadcrumbs from "../components/Breadcrumbs";
 import VehicleCard from "../components/VehicleCard";
 import TagFilterBar from "../components/TagFilterBar";
 import ReportButton from "../components/ReportButton";
-import { Search, Loader2 } from "lucide-react";
+import { VehicleGridSkeleton } from "../components/Skeleton";
+import { Search } from "lucide-react";
 
 // key={slug}: при переходе в другую категорию компонент пересоздаётся
 // (а параметры ?q= и ?tags= в ссылке новой категории всё равно пустые).
@@ -88,10 +89,7 @@ function CategoryView({ slug }) {
       {error && <p className="font-body text-sm text-amber mb-4">Ошибка загрузки: {error}</p>}
 
       {loading ? (
-        <div className="flex items-center gap-2 font-body text-sm text-mute">
-          <Loader2 size={16} className="animate-spin" />
-          Загружаю...
-        </div>
+        <VehicleGridSkeleton />
       ) : allVehicles.length === 0 ? (
         <p className="font-body text-mute">В этой категории пока нет машин с заполненными данными.</p>
       ) : vehiclesFiltered.length === 0 ? (

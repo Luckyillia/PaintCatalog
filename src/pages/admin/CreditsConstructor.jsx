@@ -11,6 +11,7 @@ import {
 import { getVehicle } from "../../data/vehicles";
 import { useVehiclesContext } from "../../context/VehiclesContext";
 import { formatRelativeTime } from "../../lib/textUtils";
+import { RowsSkeleton } from "../../components/Skeleton";
 import { Plus, Trash2, ChevronUp, ChevronDown, Pencil, X, Check } from "lucide-react";
 
 const emptyEntryForm = {
@@ -655,7 +656,7 @@ export default function CreditsConstructor() {
 
       {loadError && <p className="font-body text-sm text-amber mb-6">Ошибка загрузки: {loadError}</p>}
 
-      {!groups && !loadError && <p className="font-body text-sm text-mute">Загружаю...</p>}
+      {!groups && !loadError && <RowsSkeleton count={3} className="h-40" />}
 
       {groups && (
         <div className="flex flex-col gap-6">

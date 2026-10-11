@@ -1,12 +1,13 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Heart, History, Trash2, Loader2, Palette } from "lucide-react";
+import { Heart, History, Trash2, Palette } from "lucide-react";
 import { useFavorites } from "../context/FavoritesContext";
 import { useVehiclesContext } from "../context/VehiclesContext";
 import { getVehicle, getColorHexes } from "../data/vehicles";
 import { usePageTitle } from "../lib/usePageTitle";
 import Breadcrumbs from "../components/Breadcrumbs";
 import VehicleCard from "../components/VehicleCard";
+import { VehicleGridSkeleton } from "../components/Skeleton";
 
 function Section({ icon: Icon, title, count, onClear, emptyText, vehicles }) {
   return (
@@ -116,10 +117,7 @@ export default function Favorites() {
       </section>
 
       {loading ? (
-        <div className="flex items-center gap-2 font-body text-sm text-mute">
-          <Loader2 size={16} className="animate-spin" />
-          Загружаю...
-        </div>
+        <VehicleGridSkeleton count={3} />
       ) : (
         <>
           <Section

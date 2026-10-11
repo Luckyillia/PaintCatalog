@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Pipette, Loader2 } from "lucide-react";
+import { Pipette } from "lucide-react";
 import Breadcrumbs from "../components/Breadcrumbs";
 import CompareButton from "../components/CompareButton";
 import ScreenshotPicker from "../components/ScreenshotPicker";
+import { VehicleGridSkeleton } from "../components/Skeleton";
 import { useVehiclesContext } from "../context/VehiclesContext";
 import {
   COLOR_FAMILIES,
@@ -21,13 +22,13 @@ function ResultCard({ r }) {
   return (
     <Link
       to={`/vehicle/${r.vehicle.slug}?color=${encodeURIComponent(r.color.id)}`}
-      className="group relative flex items-center gap-3 rounded-lg border border-hair bg-panel p-3 hover:border-signal/50 transition-colors"
+      className="group flex items-center gap-3 rounded-lg border border-hair bg-panel p-3 hover:border-signal/50 transition-colors"
     >
       <span
         className="w-14 h-14 rounded-md border border-hair shadow-chip shrink-0"
         style={{ background: swatchBackground(r.hexes) }}
       />
-      <span className="min-w-0 flex-1 pr-8">
+      <span className="min-w-0 flex-1">
         <span className="block font-display text-base tracking-wide text-ink truncate group-hover:text-signal transition-colors">
           {r.vehicle.name}
         </span>
@@ -41,11 +42,11 @@ function ResultCard({ r }) {
         )}
       </span>
       {r.distance !== undefined && (
-        <span className="hidden sm:block font-body text-[11px] text-signal text-right w-20 shrink-0">
+        <span className="hidden sm:block font-body text-[11px] leading-tight text-signal text-right w-24 shrink-0">
           {deltaVerdict(r.distance)}
         </span>
       )}
-      <CompareButton slug={r.vehicle.slug} colorId={r.color.id} className="absolute top-2 right-2" />
+      <CompareButton slug={r.vehicle.slug} colorId={r.color.id} className="shrink-0" />
     </Link>
   );
 }
@@ -147,10 +148,7 @@ export default function ColorSearch() {
       {error && <p className="font-body text-sm text-amber mb-4">Ошибка загрузки: {error}</p>}
 
       {loading ? (
-        <div className="flex items-center gap-2 font-body text-sm text-mute">
-          <Loader2 size={16} className="animate-spin" />
-          Загружаю...
-        </div>
+        <VehicleGridSkeleton count={6} />
       ) : family ? (
         <>
           <h2 className="font-display text-xl tracking-wide text-ink mb-4 flex items-center gap-2">
