@@ -54,6 +54,14 @@ test("new_vehicle: название обязательно, данные ухо�
   assert.ok(validateReport({ ...base, kind: "new_vehicle", name: "ЗАЗ", category: "Bad Cat", message: "12345" }).error);
 });
 
+test("new_vehicle: комментарий необязателен, но если есть — не короче 5 символов", () => {
+  const r = validateReport({ ...base, kind: "new_vehicle", name: "ЗАЗ 968" });
+  assert.equal(r.row.message, "Предложение машины: ЗАЗ 968");
+  assert.ok(validateReport({ ...base, kind: "new_vehicle", name: "ЗАЗ 968", message: "ага" }).error);
+  // для ошибки в цвете комментарий по-прежнему обязателен
+  assert.ok(validateReport({ ...base, kind: "color_error", vehicleSlug: "a" }).error);
+});
+
 test("длинные поля обрезаются, управляющие символы вычищаются", () => {
   const r = validateReport({ ...base, kind: "color_error", vehicleSlug: "a", message: "a\u0000b".repeat(800), contact: "c".repeat(500) });
   assert.equal(r.row.message.length, 1000);

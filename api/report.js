@@ -45,6 +45,7 @@ export default async function handler(req, res) {
     supabase(`reports?select=id&created_at=gte.${hourAgo}&limit=${GLOBAL_PER_HOUR + 1}`, { method: "GET" }),
   ]);
   if (mine.status >= 400 || all.status >= 400) {
+    console.error("[report] чтение reports не удалось:", mine.status, mine.text.slice(0, 200), all.status, all.text.slice(0, 200));
     res.status(502).json({ error: "Не удалось отправить, попробуй чуть позже." });
     return;
   }
@@ -87,6 +88,7 @@ export default async function handler(req, res) {
     body: JSON.stringify({ ...row, ip_hash: ipHash }),
   });
   if (saved.status >= 400) {
+    console.error("[report] запись в reports не удалась:", saved.status, saved.text.slice(0, 300));
     res.status(502).json({ error: "Не удалось отправить, попробуй чуть позже." });
     return;
   }

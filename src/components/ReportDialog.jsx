@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Loader2, Check } from "lucide-react";
 import { categories } from "../data/categories";
 import { getColorHexes } from "../data/vehicles";
@@ -29,12 +30,33 @@ export default function ReportDialog({ kind, vehicle, color, onClose }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const canSend =
-    status !== "sending" && message.trim().length >= 5 && (isColor || name.trim().length >= 2);
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  const sending = status === "sending";
+
+  // Кнопка не блокируется молча: если чего-то не хватает, говорим, чего именно.
+  function validate() {
+    if (!isColor && name.trim().length < 2) return "Укажи название машины.";
+    const len = message.trim().length;
+    if (isColor && len < 5) return "Опиши, что не так с цветом (хотя бы пару слов).";
+    if (!isColor && len > 0 && len < 5) return "Комментарий слишком короткий: допиши или оставь поле пустым.";
+    return "";
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!canSend) return;
+    if (sending) return;
+    const problem = validate();
+    if (problem) {
+      setError(problem);
+      return;
+    }
     setStatus("sending");
     setError("");
     try {
@@ -71,7 +93,7 @@ export default function ReportDialog({ kind, vehicle, color, onClose }) {
 
   const title = isColor ? "Сообщить об ошибке в цвете" : "Предложить машину";
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 bg-black/70 flex items-start sm:items-center justify-center p-4 overflow-y-auto"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
@@ -124,7 +146,7 @@ export default function ReportDialog({ kind, vehicle, color, onClose }) {
             {!isColor && (
               <>
                 <div>
-                  <label className={labelCls} htmlFor="rp-name">Название машины</label>
+                  <label className={labelCls} htmlFor="rp-name">Название машины (обязательно)</label>
                   <input
                     id="rp-name"
                     autoFocus
@@ -167,7 +189,7 @@ export default function ReportDialog({ kind, vehicle, color, onClose }) {
 
             <div>
               <label className={labelCls} htmlFor="rp-message">
-                {isColor ? "Что не так" : "Комментарий"}
+                {isColor ? "Что не так (обязательно)" : "Комментарий (необязательно)"}
               </label>
               <textarea
                 id="rp-message"
@@ -221,16 +243,17 @@ export default function ReportDialog({ kind, vehicle, color, onClose }) {
               </button>
               <button
                 type="submit"
-                disabled={!canSend}
+                disabled={sending}
                 className="flex items-center gap-2 rounded-md bg-signal text-[#06120d] font-body text-sm font-semibold px-4 py-2 hover:bg-signal-bright transition-colors disabled:opacity-50"
               >
-                {status === "sending" && <Loader2 size={14} className="animate-spin" />}
+                {sending && <Loader2 size={14} className="animate-spin" />}
                 Отправить
               </button>
             </div>
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

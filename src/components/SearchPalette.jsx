@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { useVehiclesContext } from "../context/VehiclesContext";
@@ -7,6 +8,10 @@ import { getCategory } from "../data/categories";
 
 // Глобальный поиск (Ctrl/⌘+K): по названию, slug, тегу, названию цвета и hex.
 // Монтируется только когда открыт (см. Header), поэтому состояние сбрасывается само.
+//
+// Окно рисуется через портал в document.body. Header имеет backdrop-blur, а
+// такой родитель становится «рамкой» для position: fixed — без портала
+// затемнение растягивалось только на высоту шапки (тёмная полоска сверху).
 export default function SearchPalette({ onClose }) {
   const navigate = useNavigate();
   const { vehicles } = useVehiclesContext();
@@ -18,6 +23,15 @@ export default function SearchPalette({ onClose }) {
   // фокус в поле при открытии
   useEffect(() => {
     inputRef.current?.focus();
+  }, []);
+
+  // страница под окном не прокручивается
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, []);
 
   // Esc работает всегда, независимо от того, где сейчас фокус
@@ -76,15 +90,21 @@ export default function SearchPalette({ onClose }) {
     } else if (e.key === "Enter") go(results[active]);
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-black/70 flex items-start justify-center pt-24 px-4"
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-[12vh] px-4"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-xl rounded-lg border border-hair bg-panel shadow-lg overflow-hidden">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Поиск"
+        className="w-full max-w-xl rounded-lg border border-hair bg-panel shadow-lg overflow-hidden"
+      >
         <div className="relative border-b border-hair">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-mute pointer-events-none" />
           <input
+            ref={inputRef}
             autoFocus
             value={query}
             onChange={(e) => {
@@ -123,6 +143,7 @@ export default function SearchPalette({ onClose }) {
           <span>Esc закрыть</span>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

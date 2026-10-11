@@ -46,8 +46,11 @@ export function validateReport(body) {
 
   if (!REPORT_KINDS.includes(body.kind)) return { error: "Неизвестный тип сообщения" };
 
-  const message = cleanText(body.message, 1000);
-  if (message.length < 5) return { error: "Опиши подробнее — хотя бы пару слов (от 5 символов)." };
+  let message = cleanText(body.message, 1000);
+  // для предложения машины главное — название; комментарий можно не писать
+  // (в базе message обязателен, поэтому подставляем название ниже)
+  const messageOptional = body.kind === "new_vehicle" && message.length === 0;
+  if (!messageOptional && message.length < 5) return { error: "Опиши подробнее — хотя бы пару слов (от 5 символов)." };
 
   const contact = cleanLine(body.contact, 120) || null;
   const row = { kind: body.kind, vehicle_slug: null, color_id: null, message, contact, payload: null };
@@ -69,6 +72,8 @@ export function validateReport(body) {
   const category = typeof body.category === "string" ? body.category.trim() : "";
   if (category && (!SLUG.test(category) || category.length > 40)) return { error: "Некорректная категория" };
   const colors = cleanText(body.colors, 600);
+  if (messageOptional) message = `Предложение машины: ${name}`.slice(0, 1000);
+  row.message = message;
   row.payload = { name, category: category || null, colors: colors || null };
   return { row };
 }
