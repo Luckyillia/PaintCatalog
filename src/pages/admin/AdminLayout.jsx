@@ -60,7 +60,7 @@ export default function AdminLayout() {
     if (!adminName) return undefined;
     let cancelled = false;
     function load() {
-      adminFetch("/api/admin-reports", { countOnly: true })
+      adminFetch("/api/admin-data", { resource: "reports", countOnly: true })
         .then((json) => {
           if (!cancelled) setNewReports(json.counts?.new ?? 0);
         })

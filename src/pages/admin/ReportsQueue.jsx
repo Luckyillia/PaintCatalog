@@ -128,7 +128,7 @@ export default function ReportsQueue() {
     let cancelled = false;
     setRows(null);
     setError("");
-    adminFetch("/api/admin-reports", { status: tab === "all" ? undefined : tab, limit: 200 })
+    adminFetch("/api/admin-data", { resource: "reports", status: tab === "all" ? undefined : tab, limit: 200 })
       .then((json) => {
         if (cancelled) return;
         setRows(json.data || []);

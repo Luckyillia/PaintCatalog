@@ -35,7 +35,7 @@ export default function AuditLog() {
     let cancelled = false;
     setRows(null);
     setError("");
-    adminFetch("/api/admin-audit", { table: table || undefined, limit: 150 })
+    adminFetch("/api/admin-data", { resource: "audit", table: table || undefined, limit: 150 })
       .then((json) => {
         if (!cancelled) setRows(json.data || []);
       })

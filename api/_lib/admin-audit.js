@@ -1,5 +1,5 @@
-import { requireAdmin } from "./_lib/auth.js";
-import { supabase, parseJson } from "./_lib/db.js";
+import { requireAdmin } from "./auth.js";
+import { supabase, parseJson } from "./db.js";
 
 // Чтение журнала изменений (доступно только залогиненному админу).
 export default async function handler(req, res) {

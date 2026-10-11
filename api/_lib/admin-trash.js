@@ -1,5 +1,5 @@
-import { requireAdmin } from "./_lib/auth.js";
-import { supabase, parseJson } from "./_lib/db.js";
+import { requireAdmin } from "./auth.js";
+import { supabase, parseJson } from "./db.js";
 
 // Корзина админки: сюда api/admin-db.js кладёт копию каждой удалённой записи.
 // Восстанавливает запись браузер (через admin-db), здесь — список и очистка.

@@ -23,7 +23,7 @@ export default function Trash() {
     let cancelled = false;
     setRows(null);
     setError("");
-    adminFetch("/api/admin-trash", { action: "list" })
+    adminFetch("/api/admin-data", { resource: "trash", action: "list" })
       .then((json) => {
         if (cancelled) return;
         setRows(json.data || []);
@@ -47,7 +47,7 @@ export default function Trash() {
     setBusyId(row.id);
     try {
       await adminDb(plan.table, plan.action, plan.params);
-      await adminFetch("/api/admin-trash", { action: "purge", id: row.id });
+      await adminFetch("/api/admin-data", { resource: "trash", action: "purge", id: row.id });
       if (plan.table === "vehicles") clearVehiclesCache();
       if (plan.table === "tags" || plan.table === "tag_groups") clearTagsCache();
       setNonce((n) => n + 1);
@@ -62,7 +62,7 @@ export default function Trash() {
     if (!confirm(`Удалить «${titleOf(row)}» навсегда? Вернуть будет нельзя.`)) return;
     setBusyId(row.id);
     try {
-      await adminFetch("/api/admin-trash", { action: "purge", id: row.id });
+      await adminFetch("/api/admin-data", { resource: "trash", action: "purge", id: row.id });
       setNonce((n) => n + 1);
     } catch (err) {
       alert("Ошибка: " + err.message);
@@ -74,7 +74,7 @@ export default function Trash() {
   async function handleEmpty() {
     if (!confirm("Очистить корзину насовсем? Вернуть записи будет нельзя.")) return;
     try {
-      await adminFetch("/api/admin-trash", { action: "empty" });
+      await adminFetch("/api/admin-data", { resource: "trash", action: "empty" });
       setNonce((n) => n + 1);
     } catch (err) {
       alert("Ошибка: " + err.message);
