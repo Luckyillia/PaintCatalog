@@ -1,5 +1,10 @@
 // Реестр машин читается из Supabase (таблица vehicles). Категории
 // остаются статикой. Теги — отдельно в src/data/tags.js / TagsContext.
+//
+// Кэш каталога: последний удачный ответ хранится в localStorage, и при
+// следующем заходе сайт сразу показывает его, а свежие данные подтягивает
+// в фоне (stale-while-revalidate). Админские правки сбрасывают кэш через
+// clearVehiclesCache(), так что устаревшее видно максимум до конца запроса.
 
 import { supabaseRest } from "../lib/supabase";
 import { categories, getCategory } from "./categories";
@@ -21,7 +26,32 @@ function mapRow(row) {
   };
 }
 
-let _cache = null;
+const STORE_KEY = "osnova:vehicles:v1";
+const STORE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Возвращает ранее сохранённый каталог или null (нет, устарел, битый).
+export function readStoredVehicles() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return null;
+    const { savedAt, rows } = JSON.parse(raw);
+    if (!Array.isArray(rows) || !(Date.now() - savedAt < STORE_MAX_AGE_MS)) return null;
+    return rows;
+  } catch {
+    return null;
+  }
+}
+
+function storeVehicles(rows) {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({ savedAt: Date.now(), rows }));
+  } catch {
+    // нет места или localStorage недоступен — кэш просто не сохранится
+  }
+}
+
+let _cache = null; // свежие данные этой сессии
+let _stale; // данные из localStorage (читаются лениво, один раз)
 let _pending = null;
 
 const _listeners = new Set();
@@ -40,6 +70,7 @@ export async function fetchVehiclesFromSupabase(forceRefresh = false) {
     _pending = supabaseRest("vehicles?select=*&order=name.asc")
       .then((rows) => {
         _cache = rows.map(mapRow);
+        storeVehicles(_cache);
         return _cache;
       })
       .finally(() => {
@@ -50,7 +81,9 @@ export async function fetchVehiclesFromSupabase(forceRefresh = false) {
 }
 
 export function getCachedVehicles() {
-  return _cache ?? [];
+  if (_cache) return _cache;
+  if (_stale === undefined) _stale = readStoredVehicles();
+  return _stale ?? [];
 }
 
 export function clearVehiclesCache() {

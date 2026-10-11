@@ -58,11 +58,14 @@ const RULES = {
     vehicle_slugs: slugArr,
     sort_order: int,
   },
+  // репорты: админ меняет только статус (создаёт их api/report.js)
+  reports: { status: (v) => v === "new" || v === "accepted" || v === "rejected" },
 };
 
 // Возвращает текст ошибки или null.
 export function validateFields(table, obj) {
-  const rules = RULES[table];
+  // Object.hasOwn: имена вроде "constructor" / "__proto__" не должны находить правила в прототипе
+  const rules = typeof table === "string" && Object.hasOwn(RULES, table) ? RULES[table] : null;
   if (!rules) return "Неизвестная таблица";
   for (const [field, check] of Object.entries(rules)) {
     if (obj[field] !== undefined && !check(obj[field])) {

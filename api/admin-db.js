@@ -16,6 +16,7 @@ const TABLES = {
     key: "id",
     columns: ["group_id", "name", "role", "note", "avatar", "link", "provider_id", "vehicle_slugs", "sort_order"],
   },
+  reports: { key: "id", columns: ["status"] },
 };
 
 const MAX_ROWS = 50;

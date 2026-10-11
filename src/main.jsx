@@ -6,6 +6,7 @@ import App from "./App.jsx";
 import { VehiclesProvider } from "./context/VehiclesProvider";
 import { TagsProvider } from "./context/TagsProvider";
 import { FavoritesProvider } from "./context/FavoritesProvider";
+import { CompareProvider } from "./context/CompareProvider";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -13,7 +14,9 @@ createRoot(document.getElementById("root")).render(
       <VehiclesProvider>
         <TagsProvider>
           <FavoritesProvider>
-            <App />
+            <CompareProvider>
+              <App />
+            </CompareProvider>
           </FavoritesProvider>
         </TagsProvider>
       </VehiclesProvider>

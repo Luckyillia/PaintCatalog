@@ -7,6 +7,7 @@ import { usePageTitle } from "../lib/usePageTitle";
 import Breadcrumbs from "../components/Breadcrumbs";
 import VehicleCard from "../components/VehicleCard";
 import TagFilterBar from "../components/TagFilterBar";
+import ReportButton from "../components/ReportButton";
 import { Search, Loader2 } from "lucide-react";
 
 // key={slug}: при переходе в другую категорию компонент пересоздаётся
@@ -61,7 +62,10 @@ function CategoryView({ slug }) {
   return (
     <div className="max-w-6xl mx-auto px-5 py-10">
       <Breadcrumbs items={[{ label: "Главная", to: "/" }, { label: category.name }]} />
-      <h1 className="font-display text-3xl tracking-wide text-ink mb-6">{category.name}</h1>
+      <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
+        <h1 className="font-display text-3xl tracking-wide text-ink">{category.name}</h1>
+        <ReportButton kind="new_vehicle" label="Предложить машину" />
+      </div>
 
       <div className="relative mb-5">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-mute pointer-events-none" />

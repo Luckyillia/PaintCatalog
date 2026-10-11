@@ -8,7 +8,9 @@ export default function VehicleEditor() {
   const [vehicles, setVehicles] = useState(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
-  const [selectedSlug, setSelectedSlug] = useState(null);
+  const [selectedSlug, setSelectedSlug] = useState(
+    () => new URLSearchParams(window.location.search).get("slug")
+  );
   const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 

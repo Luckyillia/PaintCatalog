@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { PlusCircle, PenSquare, Tags, Award, ArrowRight, History } from "lucide-react";
+import { PlusCircle, PenSquare, Tags, Award, ArrowRight, History, Inbox } from "lucide-react";
 
 const CARDS = [
   {
@@ -27,10 +27,16 @@ const CARDS = [
     desc: "Блоки и записи благодарностей.",
   },
   {
+    to: "/admin/reports",
+    icon: Inbox,
+    title: "Репорты",
+    desc: "Ошибки в цветах и предложения новых машин от посетителей.",
+  },
+  {
     to: "/admin/audit",
     icon: History,
     title: "Журнал изменений",
-    desc: "Кто, что и когда менял — со значениями «было / стало».",
+    desc: "Кто, что и когда менял — со значениями «было / стало» и откатом.",
   },
 ];
 

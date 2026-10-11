@@ -1,6 +1,11 @@
 {
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    {
+      "source": "/vehicle/:slug",
+      "has": [{ "type": "query", "key": "color", "value": "(?<color>[A-Za-z0-9_.-]+)" }],
+      "destination": "/api/vehicle-page?slug=:slug&color=:color"
+    },
     { "source": "/vehicle/:slug", "destination": "/api/vehicle-page?slug=:slug" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]

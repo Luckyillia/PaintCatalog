@@ -2,11 +2,15 @@ import { supabase, parseJson } from "./_lib/db.js";
 
 // /vehicle/:slug отдаёт обычный index.html, но с OG-тегами конкретной
 // машины — чтобы ссылка красиво выглядела в Telegram/VK/Discord.
+// Если в ссылке есть ?color=<id> (см. rewrite в vercel.json), превью
+// строится под этот цвет: его название, hex и скрин из игры.
 // Сам сайт (SPA) работает как раньше. Если что-то пошло не так —
-// удали правило /vehicle/:slug из vercel.json, и всё вернётся как было.
+// удали правила /vehicle/:slug из vercel.json, и всё вернётся как было.
 
 const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+const COLOR_ID = /^[\w.-]{1,80}$/;
 
 function ogImage(url) {
   const marker = "/image/upload/";
@@ -23,7 +27,9 @@ function setMeta(html, property, value) {
 }
 
 export default async function handler(req, res) {
-  const slug = String(req.query?.slug ?? new URL(req.url, "http://x").searchParams.get("slug") ?? "").trim();
+  const url = new URL(req.url, "http://x");
+  const slug = String(req.query?.slug ?? url.searchParams.get("slug") ?? "").trim();
+  const colorId = String(req.query?.color ?? url.searchParams.get("color") ?? "").trim();
   const proto = req.headers["x-forwarded-proto"] || "https";
   const host = req.headers["x-forwarded-host"] || req.headers.host;
   const origin = `${proto}://${host}`;
@@ -42,15 +48,29 @@ export default async function handler(req, res) {
     const r = await supabase(`vehicles?slug=eq.${encodeURIComponent(slug)}&select=name,image,colors&limit=1`, { method: "GET" }, { anon: true });
     const v = r.status < 400 ? parseJson(r.text)?.[0] : null;
     if (v) {
-      const n = Array.isArray(v.colors) ? v.colors.length : 0;
-      const title = `${v.name} — стоковые цвета | OSNOVA`;
-      const desc = `Заводские цвета ${v.name}: ${n} вариантов окраски с точными hex-кодами.`;
+      const colors = Array.isArray(v.colors) ? v.colors : [];
+      const color = COLOR_ID.test(colorId) ? colors.find((c) => c.id === colorId) : null;
+
+      let title = `${v.name} — стоковые цвета | OSNOVA`;
+      let desc = `Заводские цвета ${v.name}: ${colors.length} вариантов окраски с точными hex-кодами.`;
+      let pageUrl = `${origin}/vehicle/${slug}`;
+      let image = v.image;
+
+      if (color) {
+        const hexes = (color.hexes ?? [color.hex]).filter(Boolean).join(" / ");
+        const accent = color.accentHex ? `, вставки ${color.accentHex}` : "";
+        title = `${v.name} — ${color.name} | OSNOVA`;
+        desc = `Стоковый цвет «${color.name}» для ${v.name}: ${hexes}${accent}.`;
+        pageUrl = `${pageUrl}?color=${encodeURIComponent(color.id)}`;
+        image = color.image || v.image;
+      }
+
       html = html.replace(/<title>[\s\S]*?<\/title>/, () => `<title>${esc(title)}</title>`);
       html = setMeta(html, "description", desc);
       html = setMeta(html, "og:title", title);
       html = setMeta(html, "og:description", desc);
-      html = setMeta(html, "og:url", `${origin}/vehicle/${slug}`);
-      const img = ogImage(v.image);
+      html = setMeta(html, "og:url", pageUrl);
+      const img = ogImage(image);
       if (img) html = setMeta(html, "og:image", img);
     }
   }

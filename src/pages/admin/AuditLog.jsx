@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { Loader2, RefreshCw } from "lucide-react";
-import { adminFetch } from "../../lib/adminApi";
+import { Loader2, RefreshCw, Undo2 } from "lucide-react";
+import { adminFetch, adminDb } from "../../lib/adminApi";
 import { formatRelativeTime } from "../../lib/textUtils";
+import { planRollback } from "../../lib/auditRollback";
+import { clearVehiclesCache } from "../../data/vehicles";
+import { clearTagsCache } from "../../data/tags";
 
-const TABLES = ["", "vehicles", "tags", "tag_groups", "credit_groups", "credit_entries"];
+const TABLES = ["", "vehicles", "tags", "tag_groups", "credit_groups", "credit_entries", "reports"];
 const ACTION_LABEL = { insert: "создание", upsert: "сохранение", update: "правка", delete: "удаление" };
 
 function Json({ title, data }) {
@@ -25,6 +28,7 @@ export default function AuditLog() {
   const [rows, setRows] = useState(null);
   const [error, setError] = useState("");
   const [openId, setOpenId] = useState(null);
+  const [rollingBack, setRollingBack] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,6 +45,23 @@ export default function AuditLog() {
       cancelled = true;
     };
   }, [table, nonce]);
+
+  async function handleRollback(row) {
+    const plan = planRollback(row);
+    if (!plan || !confirm(plan.confirm)) return;
+    setRollingBack(row.id);
+    try {
+      await adminDb(plan.table, plan.action, plan.params);
+      // сайт и формы должны подхватить откат без перезагрузки страницы
+      if (plan.table === "vehicles") clearVehiclesCache();
+      if (plan.table === "tags" || plan.table === "tag_groups") clearTagsCache();
+      setNonce((n) => n + 1);
+    } catch (err) {
+      alert("Не удалось откатить: " + err.message);
+    } finally {
+      setRollingBack(null);
+    }
+  }
 
   return (
     <div>
@@ -85,30 +106,48 @@ export default function AuditLog() {
 
       {rows && (
         <div className="flex flex-col gap-2">
-          {rows.map((r) => (
-            <div key={r.id} className="border border-hair rounded-md bg-panel">
-              <button
-                onClick={() => setOpenId(openId === r.id ? null : r.id)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left flex-wrap"
-              >
-                <span className="font-mono text-[11px] text-signal uppercase w-20 shrink-0">
-                  {ACTION_LABEL[r.action] || r.action}
-                </span>
-                <span className="font-display text-sm tracking-wide text-ink truncate flex-1 min-w-[140px]">
-                  {r.table_name} · {r.row_key ?? "—"}
-                </span>
-                <span className="font-mono text-[11px] text-mute" title={r.created_at}>
-                  {r.edited_by || "?"} · {formatRelativeTime(r.created_at)}
-                </span>
-              </button>
-              {openId === r.id && (
-                <div className="flex gap-3 flex-wrap px-4 pb-4">
-                  <Json title="Было" data={r.old_data} />
-                  <Json title="Стало" data={r.new_data} />
-                </div>
-              )}
-            </div>
-          ))}
+          {rows.map((r) => {
+            const canRollback = planRollback(r) !== null;
+            return (
+              <div key={r.id} className="border border-hair rounded-md bg-panel">
+                <button
+                  onClick={() => setOpenId(openId === r.id ? null : r.id)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left flex-wrap"
+                >
+                  <span className="font-mono text-[11px] text-signal uppercase w-20 shrink-0">
+                    {ACTION_LABEL[r.action] || r.action}
+                  </span>
+                  <span className="font-display text-sm tracking-wide text-ink truncate flex-1 min-w-[140px]">
+                    {r.table_name} · {r.row_key ?? "—"}
+                  </span>
+                  <span className="font-mono text-[11px] text-mute" title={r.created_at}>
+                    {r.edited_by || "?"} · {formatRelativeTime(r.created_at)}
+                  </span>
+                </button>
+                {openId === r.id && (
+                  <div className="px-4 pb-4 flex flex-col gap-3">
+                    <div className="flex gap-3 flex-wrap">
+                      <Json title="Было" data={r.old_data} />
+                      <Json title="Стало" data={r.new_data} />
+                    </div>
+                    {canRollback && (
+                      <div>
+                        <button
+                          type="button"
+                          onClick={() => handleRollback(r)}
+                          disabled={rollingBack === r.id}
+                          className="flex items-center gap-1.5 rounded-md border border-hair bg-raised text-ink font-body text-xs px-3 py-2 hover:border-signal/50 hover:text-signal transition-colors disabled:opacity-50"
+                        >
+                          {rollingBack === r.id ? <Loader2 size={13} className="animate-spin" /> : <Undo2 size={13} />}
+                          Откатить это изменение
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

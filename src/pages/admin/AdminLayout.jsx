@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, Link } from "react-router-dom";
 import { ShieldCheck, ArrowLeft, LogOut } from "lucide-react";
-import { adminLogin, adminLogout, getAdminName, LOGOUT_EVENT } from "../../lib/adminApi";
+import { adminLogin, adminLogout, adminFetch, getAdminName, LOGOUT_EVENT } from "../../lib/adminApi";
+import { REPORTS_CHANGED_EVENT } from "../../lib/adminEvents";
 
 // Пароль проверяет сервер (api/admin-login.js). Здесь хранится только имя
 // для отображения и токен сессии (см. src/lib/adminApi.js).
@@ -12,6 +13,7 @@ const NAV_ITEMS = [
   { to: "/admin/vehicle-editor", label: "Редактировать машины" },
   { to: "/admin/tags", label: "Теги и группы" },
   { to: "/admin/credits", label: "Стена почёта" },
+  { to: "/admin/reports", label: "Репорты", badgeKey: "reports" },
   { to: "/admin/audit", label: "Журнал" },
 ];
 
@@ -21,6 +23,7 @@ export default function AdminLayout() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [checking, setChecking] = useState(false);
+  const [newReports, setNewReports] = useState(0);
 
   useEffect(() => {
     function handleLogout() {
@@ -30,6 +33,25 @@ export default function AdminLayout() {
     window.addEventListener(LOGOUT_EVENT, handleLogout);
     return () => window.removeEventListener(LOGOUT_EVENT, handleLogout);
   }, []);
+
+  // счётчик новых репортов в меню; если таблицы ещё нет — молча без бейджа
+  useEffect(() => {
+    if (!adminName) return undefined;
+    let cancelled = false;
+    function load() {
+      adminFetch("/api/admin-reports", { countOnly: true })
+        .then((json) => {
+          if (!cancelled) setNewReports(json.counts?.new ?? 0);
+        })
+        .catch(() => {});
+    }
+    load();
+    window.addEventListener(REPORTS_CHANGED_EVENT, load);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(REPORTS_CHANGED_EVENT, load);
+    };
+  }, [adminName]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -112,6 +134,11 @@ export default function AdminLayout() {
                 }
               >
                 {item.label}
+                {item.badgeKey === "reports" && newReports > 0 && (
+                  <span className="ml-1.5 font-mono text-[10px] leading-none bg-signal text-[#0a0c0f] rounded-full px-1.5 py-0.5">
+                    {newReports}
+                  </span>
+                )}
               </NavLink>
             ))}
           </nav>
