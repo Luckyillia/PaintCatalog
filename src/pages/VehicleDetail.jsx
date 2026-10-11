@@ -86,6 +86,7 @@ export default function VehicleDetail() {
   const activeHexes = getColorHexes(activeColor);
   const activeAccentHex = getColorAccentHex(activeColor);
   const orderedColors = colorOrder === "hue" ? sortColorsByHue(vehicle.colors) : vehicle.colors;
+  const hasPhoto = Boolean(activeColor.image);
 
   return (
     <div className="max-w-6xl mx-auto px-5 py-10">
@@ -104,74 +105,28 @@ export default function VehicleDetail() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="flex flex-col gap-6">
-          <div>
-            <span className="font-mono text-xs tracking-[0.2em] text-signal uppercase">Стоковый цвет</span>
-            <h2 className="font-display text-3xl tracking-wide text-ink mt-1 mb-4">{activeColor.name}</h2>
-            <CopyHex hexes={activeHexes} format={fmt} onFormatChange={setFmt} />
-
-            {activeAccentHex && (
-              <div className="mt-4">
-                <span className="font-body text-xs uppercase tracking-[0.15em] text-mute mb-2 block">
-                  Цвет вставок
-                </span>
-                <CopyHex hexes={activeAccentHex} format={fmt} onFormatChange={setFmt} showTabs={false} />
-              </div>
-            )}
-
-            <div className="flex flex-wrap items-center gap-2 mt-4">
-              <CompareButton slug={vehicle.slug} colorId={activeColor.id} withLabel />
-              <ReportButton kind="color_error" vehicle={vehicle} color={activeColor} label="Ошибка в цвете?" />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <h3 className="font-body text-xs uppercase tracking-[0.15em] text-mute">
-                Варианты окраски ({vehicle.colors.length})
-              </h3>
-              {vehicle.colors.length > 2 && (
-                <div className="inline-flex rounded-md border border-hair overflow-hidden" role="group" aria-label="Порядок цветов">
-                  {ORDERS.map((o) => (
-                    <button
-                      key={o.id}
-                      type="button"
-                      onClick={() => setColorOrder(o.id)}
-                      aria-pressed={colorOrder === o.id}
-                      className={`font-body text-[11px] px-2.5 py-1 transition-colors ${
-                        colorOrder === o.id ? "bg-signal/15 text-signal" : "bg-raised text-mute hover:text-ink"
-                      }`}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-              {orderedColors.map((color) => (
-                <ColorChip
-                  key={color.id}
-                  color={color}
-                  active={color.id === activeColor.id}
-                  onClick={() => setParams({ color: color.id }, { replace: true })}
-                />
-              ))}
-            </div>
-          </div>
-
-          <SimilarColors vehicles={vehicles} vehicle={vehicle} color={activeColor} />
-
-          <PaletteExport vehicle={vehicle} />
-        </div>
-
-        <div className="flex flex-col">
-          <h3 className="font-body text-xs uppercase tracking-[0.15em] text-mute mb-3">В игре</h3>
+      {/*
+        Телефон: одна колонка, порядок — фото, цвет и коды, варианты окраски, остальное.
+        Фото «в игре» прилипает под шапкой, поэтому при выборе цвета из длинного списка
+        его не нужно искать внизу страницы — оно всегда на виду.
+        Десктоп (lg): две колонки, фото справа и тоже прилипает при прокрутке.
+      */}
+      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:gap-x-8 lg:items-start">
+        <div
+          className={`${
+            hasPhoto ? "sticky top-16 z-10 -mx-5 bg-base px-5 py-2" : ""
+          } lg:sticky lg:top-24 lg:z-0 lg:mx-0 lg:bg-transparent lg:p-0 lg:col-start-2 lg:row-start-1 lg:row-span-4 lg:self-start`}
+        >
+          <h3 className="hidden lg:block font-body text-xs uppercase tracking-[0.15em] text-mute mb-3">В игре</h3>
           <PhotoSlot
+            key={activeColor.id}
             src={activeColor.image}
             alt={`${vehicle.name} — ${activeColor.name}`}
-            className="w-full aspect-[16/10]"
+            className={
+              hasPhoto
+                ? "w-full aspect-[16/9] max-h-[30vh] lg:max-h-none lg:aspect-[16/10]"
+                : "w-full h-24 lg:h-auto lg:aspect-[16/10]"
+            }
             width={900}
             label={
               <>
@@ -181,6 +136,69 @@ export default function VehicleDetail() {
               </>
             }
           />
+        </div>
+
+        <div className="lg:col-start-1">
+          <span className="font-mono text-xs tracking-[0.2em] text-signal uppercase">Стоковый цвет</span>
+          <h2 className="font-display text-3xl tracking-wide text-ink mt-1 mb-4">{activeColor.name}</h2>
+          <CopyHex hexes={activeHexes} format={fmt} onFormatChange={setFmt} />
+
+          {activeAccentHex && (
+            <div className="mt-4">
+              <span className="font-body text-xs uppercase tracking-[0.15em] text-mute mb-2 block">
+                Цвет вставок
+              </span>
+              <CopyHex hexes={activeAccentHex} format={fmt} onFormatChange={setFmt} showTabs={false} />
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-2 mt-4">
+            <CompareButton slug={vehicle.slug} colorId={activeColor.id} withLabel />
+            <ReportButton kind="color_error" vehicle={vehicle} color={activeColor} label="Ошибка в цвете?" />
+          </div>
+        </div>
+
+        <div className="lg:col-start-1">
+          <div className="flex items-center justify-between gap-x-3 gap-y-2 flex-wrap mb-3">
+            <h3 className="font-body text-xs uppercase tracking-[0.15em] text-mute">
+              Варианты окраски ({vehicle.colors.length})
+            </h3>
+            {vehicle.colors.length > 2 && (
+              <div className="inline-flex rounded-md border border-hair overflow-hidden" role="group" aria-label="Порядок цветов">
+                {ORDERS.map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => setColorOrder(o.id)}
+                    aria-pressed={colorOrder === o.id}
+                    className={`font-body text-[11px] px-2.5 py-1.5 transition-colors ${
+                      colorOrder === o.id ? "bg-signal/15 text-signal" : "bg-raised text-mute hover:text-ink"
+                    }`}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+            {orderedColors.map((color) => (
+              <ColorChip
+                key={color.id}
+                color={color}
+                active={color.id === activeColor.id}
+                onClick={() => setParams({ color: color.id }, { replace: true })}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="lg:col-start-1">
+          <SimilarColors vehicles={vehicles} vehicle={vehicle} color={activeColor} />
+        </div>
+
+        <div className="lg:col-start-1">
+          <PaletteExport vehicle={vehicle} />
         </div>
       </div>
     </div>

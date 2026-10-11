@@ -12,6 +12,9 @@ import { getCategory } from "../data/categories";
 // Окно рисуется через портал в document.body. Header имеет backdrop-blur, а
 // такой родитель становится «рамкой» для position: fixed — без портала
 // затемнение растягивалось только на высоту шапки (тёмная полоска сверху).
+//
+// На телефоне окно поднято выше, а список короче: иначе экранная клавиатура
+// закрывает результаты.
 export default function SearchPalette({ onClose }) {
   const navigate = useNavigate();
   const { vehicles } = useVehiclesContext();
@@ -92,7 +95,7 @@ export default function SearchPalette({ onClose }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-[12vh] px-4"
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-[5vh] sm:pt-[12vh] px-3 sm:px-4"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
@@ -116,7 +119,7 @@ export default function SearchPalette({ onClose }) {
             className="w-full bg-transparent pl-11 pr-4 py-4 font-body text-sm text-ink placeholder:text-mute focus:outline-none"
           />
         </div>
-        <div className="max-h-80 overflow-y-auto chip-scroll">
+        <div className="max-h-[38vh] sm:max-h-80 overflow-y-auto chip-scroll">
           {!query.trim() && (
             <p className="font-body text-xs text-mute px-4 py-4">Начни вводить — например «bmw», «чёрный» или «FF0000».</p>
           )}
@@ -128,16 +131,17 @@ export default function SearchPalette({ onClose }) {
               key={item.v.slug}
               onMouseEnter={() => setActive(i)}
               onClick={() => go(item)}
-              className={`w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors ${
+              className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 sm:py-3 text-left transition-colors ${
                 i === active ? "bg-raised2" : ""
               }`}
             >
               <span className="font-display text-base tracking-wide text-ink truncate">{item.v.name}</span>
-              <span className="font-mono text-[11px] text-mute shrink-0">{item.hint}</span>
+              <span className="font-mono text-[11px] text-mute shrink-0 max-w-[45%] truncate">{item.hint}</span>
             </button>
           ))}
         </div>
-        <div className="border-t border-hair px-4 py-2 font-mono text-[10px] text-mute flex gap-4">
+        {/* подсказки по клавишам нужны только на компьютере */}
+        <div className="hidden sm:flex border-t border-hair px-4 py-2 font-mono text-[10px] text-mute gap-4">
           <span>↑↓ выбор</span>
           <span>Enter открыть</span>
           <span>Esc закрыть</span>

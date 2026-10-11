@@ -6,6 +6,11 @@
   box-sizing: border-box;
 }
 
+html {
+  /* iOS не раздувает шрифты при повороте экрана */
+  -webkit-text-size-adjust: 100%;
+}
+
 html, body, #root {
   margin: 0;
   min-height: 100%;
@@ -15,11 +20,23 @@ body {
   background: #0a0c0f;
   color: #e7ecef;
   font-family: 'Inter', sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
 
 ::selection {
   background: #39c98f;
   color: #0a0c0f;
+}
+
+/* iOS Safari приближает страницу при фокусе на поле со шрифтом меньше 16px
+   и потом не возвращает масштаб. На телефоне держим 16px у всех полей
+   (чекбоксы, радио, выбор цвета и файла не затрагиваем). */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* thin industrial scrollbar for the chip strip */

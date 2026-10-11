@@ -27,9 +27,13 @@ function HexRow({ hex, fmt }) {
   return (
     <button
       onClick={handleCopy}
-      className="group flex items-center justify-between gap-4 w-full rounded-md border border-hair bg-raised px-4 py-3 hover:border-signal/50 transition-colors"
+      aria-label={`Копировать ${text}`}
+      className="group flex items-center justify-between gap-3 w-full rounded-md border border-hair bg-raised px-4 py-3 hover:border-signal/50 transition-colors"
     >
-      <span className="font-mono text-lg tracking-wider text-ink">{text}</span>
+      {/* на телефоне шрифт чуть меньше: «hsl(120, 100%, 50%)» иначе не помещается */}
+      <span className="min-w-0 break-all text-left font-mono text-base sm:text-lg tracking-wide sm:tracking-wider text-ink">
+        {text}
+      </span>
       <span className="flex items-center gap-1.5 font-body text-xs text-mute group-hover:text-signal transition-colors shrink-0">
         {copied ? (
           <>
@@ -39,7 +43,7 @@ function HexRow({ hex, fmt }) {
         ) : (
           <>
             <Copy size={14} />
-            Копировать
+            <span className="hidden sm:inline">Копировать</span>
           </>
         )}
       </span>
@@ -64,7 +68,7 @@ export default function CopyHex({ hexes, format, onFormatChange, showTabs = true
               type="button"
               onClick={() => setFmt(f)}
               aria-pressed={fmt === f}
-              className={`font-mono text-[11px] px-3 py-1.5 transition-colors ${
+              className={`font-mono text-[11px] px-3.5 py-2 sm:px-3 sm:py-1.5 transition-colors ${
                 fmt === f ? "bg-signal/15 text-signal" : "bg-raised text-mute hover:text-ink"
               }`}
             >

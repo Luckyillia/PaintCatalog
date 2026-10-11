@@ -12,15 +12,15 @@ import { VehicleGridSkeleton } from "../components/Skeleton";
 function Section({ icon: Icon, title, count, onClear, emptyText, vehicles }) {
   return (
     <div className="mb-12">
-      <h2 className="font-display text-2xl tracking-wide text-ink mb-4 flex items-center gap-3">
+      <h2 className="font-display text-xl sm:text-2xl tracking-wide text-ink mb-4 flex items-center gap-x-3 gap-y-1 flex-wrap">
         <Icon size={20} className="text-signal shrink-0" />
         {title}
-        <span className="flex-1 h-px bg-hair" />
+        <span className="hidden sm:block flex-1 h-px bg-hair" />
         <span className="font-mono text-xs text-mute">{count}</span>
         {count > 0 && (
           <button
             onClick={onClear}
-            className="flex items-center gap-1 font-body text-xs text-mute hover:text-amber transition-colors shrink-0"
+            className="ml-auto sm:ml-0 flex items-center gap-1 font-body text-xs text-mute hover:text-amber transition-colors shrink-0 py-2"
           >
             <Trash2 size={13} />
             Очистить
@@ -46,7 +46,7 @@ function Palettes({ vehicles }) {
   if (vehicles.length === 0) return null;
   return (
     <div className="mb-12">
-      <h2 className="font-display text-2xl tracking-wide text-ink mb-4 flex items-center gap-3">
+      <h2 className="font-display text-xl sm:text-2xl tracking-wide text-ink mb-4 flex items-center gap-3">
         <Palette size={20} className="text-signal shrink-0" />
         Палитры избранного
         <span className="flex-1 h-px bg-hair" />

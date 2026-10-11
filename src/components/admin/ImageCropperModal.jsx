@@ -12,7 +12,8 @@ const OUTPUT_SIZES = {
 
 const MAX_W = 760;
 const MAX_H = 480;
-const HANDLE_SIZE = 14;
+const HANDLE_SIZE = 14; // размер нарисованного квадратика
+const HANDLE_HIT = 26; // зона, в которую можно попасть пальцем
 
 const RATIO_OPTIONS = [
   { value: "4:3", label: "Карточка машины / категории (4:3)" },
@@ -133,10 +134,10 @@ export default function ImageCropperModal({ file, defaultRatio = "4:3", onConfir
   function onHandle(pos) {
     const box = boxRef.current;
     return (
-      pos.x >= box.x + box.w - HANDLE_SIZE &&
-      pos.x <= box.x + box.w + HANDLE_SIZE &&
-      pos.y >= box.y + box.h - HANDLE_SIZE &&
-      pos.y <= box.y + box.h + HANDLE_SIZE
+      pos.x >= box.x + box.w - HANDLE_HIT &&
+      pos.x <= box.x + box.w + HANDLE_HIT &&
+      pos.y >= box.y + box.h - HANDLE_HIT &&
+      pos.y <= box.y + box.h + HANDLE_HIT
     );
   }
   function inside(pos) {
@@ -213,8 +214,8 @@ export default function ImageCropperModal({ file, defaultRatio = "4:3", onConfir
   if (!file) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-5">
-      <div className="w-full max-w-3xl bg-panel border border-hair rounded-lg p-5">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/80 p-3 sm:p-5 overflow-y-auto">
+      <div className="w-full max-w-3xl bg-panel border border-hair rounded-lg p-4 sm:p-5">
         <div className="mb-3">
           <label className="font-body text-xs uppercase tracking-[0.1em] text-mute mb-1 block">
             Формат под сайт
@@ -222,7 +223,7 @@ export default function ImageCropperModal({ file, defaultRatio = "4:3", onConfir
           <select
             value={ratio}
             onChange={(e) => setRatio(e.target.value)}
-            className="bg-raised border border-hair rounded px-3 py-2 font-body text-sm text-ink focus:outline-none focus:border-signal/50"
+            className="w-full sm:w-auto bg-raised border border-hair rounded px-3 py-2 font-body text-sm text-ink focus:outline-none focus:border-signal/50"
           >
             {RATIO_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -245,6 +246,7 @@ export default function ImageCropperModal({ file, defaultRatio = "4:3", onConfir
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerUp}
+            onPointerCancel={handlePointerUp}
             style={{ cursor: "move", maxWidth: "100%", display: "block", touchAction: "none" }}
           />
         </div>
@@ -258,7 +260,7 @@ export default function ImageCropperModal({ file, defaultRatio = "4:3", onConfir
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-md border border-hair bg-raised text-ink font-body text-sm px-4 py-2 hover:border-mute transition-colors"
+            className="rounded-md border border-hair bg-raised text-ink font-body text-sm px-4 py-2.5 hover:border-mute transition-colors"
           >
             Отмена
           </button>
@@ -266,7 +268,7 @@ export default function ImageCropperModal({ file, defaultRatio = "4:3", onConfir
             type="button"
             onClick={handleConfirm}
             disabled={!ready}
-            className="rounded-md bg-signal text-[#06120d] font-body text-sm font-semibold px-4 py-2 hover:bg-signal-bright transition-colors disabled:opacity-50"
+            className="rounded-md bg-signal text-[#06120d] font-body text-sm font-semibold px-4 py-2.5 hover:bg-signal-bright transition-colors disabled:opacity-50"
           >
             Применить обрезку
           </button>
