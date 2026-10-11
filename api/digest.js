@@ -1,5 +1,5 @@
 import { supabase, parseJson } from "./_lib/db.js";
-import { escapeHtml, safeEqual, sendToChat, siteUrl } from "./_lib/telegram.js";
+import { DIV, bar, escapeHtml, safeEqual, sendToChat, siteUrl } from "./_lib/telegram.js";
 
 // Утренняя сводка в Telegram (Vercel Cron, см. vercel.json). Отправляет
 // сообщение только если есть невыполненные репорты. Защита: CRON_SECRET —
@@ -38,15 +38,20 @@ export default async function handler(req, res) {
   const oldestDays = Math.floor((now - new Date(rows[0].created_at).getTime()) / DAY);
   const fresh = rows.filter((x) => now - new Date(x.created_at).getTime() < DAY).length;
   const colorErrors = rows.filter((x) => x.kind === "color_error").length;
+  const vehicles = rows.length - colorErrors;
   const site = siteUrl(req);
 
   const lines = [
-    "☀️ <b>Утренняя сводка</b>",
-    `Ждут решения: <b>${rows.length}</b> (ошибок в цвете: ${colorErrors}, машин: ${rows.length - colorErrors})`,
-    `За последние сутки: ${fresh}`,
+    "☀️ <b>Доброе утро! Сводка OSNOVA</b>",
+    DIV,
+    `📬 Ждут решения: <b>${rows.length}</b>`,
+    `🎨 Ошибки в цвете\n    ${bar(colorErrors, rows.length)} ${colorErrors}`,
+    `🚗 Предложения машин\n    ${bar(vehicles, rows.length)} ${vehicles}`,
+    DIV,
+    `🕒 За последние сутки: <b>${fresh}</b>`,
   ];
-  if (oldestDays >= 1) lines.push(`Самый старый ждёт ${oldestDays} дн.`);
-  lines.push("", "Отправь /new, чтобы разобрать их кнопками.");
+  if (oldestDays >= 1) lines.push(`⏳ Самый старый ждёт ${oldestDays} дн.`);
+  lines.push("", "👉 /new — разобрать кнопками · /menu — меню");
   if (site) lines.push(escapeHtml(`${site}/admin/reports`));
 
   const sent = await sendToChat(lines.join("\n"));

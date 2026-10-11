@@ -83,9 +83,15 @@ async function main() {
   });
   await call("setMyCommands", {
     commands: [
+      { command: "menu", description: "Меню с кнопками" },
+      { command: "find", description: "Поиск машины" },
+      { command: "car", description: "Карточка машины с цветами" },
+      { command: "top", description: "Популярное" },
+      { command: "recent", description: "Новые машины" },
+      { command: "health", description: "Здоровье каталога" },
+      { command: "audit", description: "Правки админов" },
       { command: "new", description: "Новые репорты с кнопками" },
       { command: "stats", description: "Сводка по каталогу и репортам" },
-      { command: "help", description: "Что умеет бот" },
     ],
   });
   console.log(`Готово: вебхук ${site}/api/telegram, команды /new /stats /help.`);

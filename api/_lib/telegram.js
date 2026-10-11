@@ -7,6 +7,17 @@ export const STATUS_LABEL = { new: "🆕 Новый", accepted: "✅ Приня�
 const KIND_LABEL = { color_error: "Ошибка в цвете", new_vehicle: "Предложение машины" };
 const CALLBACK_STATUS = { a: "accepted", r: "rejected", n: "new" };
 
+// Разделитель и прогресс-бар для всех сообщений бота.
+export const DIV = "━━━━━━━━━━━━━━━━━━";
+
+export function bar(value, total, width = 10) {
+  const v = Number(value);
+  const t = Number(total);
+  const ratio = t > 0 && Number.isFinite(v) ? Math.min(1, Math.max(0, v / t)) : 0;
+  const filled = Math.round(ratio * width);
+  return "▰".repeat(filled) + "▱".repeat(width - filled);
+}
+
 export function escapeHtml(s) {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -19,19 +30,23 @@ export function siteUrl(req, env = process.env) {
 }
 
 export function buildReportHtml(row, site = "", status = row.status) {
-  const lines = [`📩 <b>${escapeHtml(KIND_LABEL[row.kind] || row.kind)}</b>${row.id != null ? ` #${row.id}` : ""}`];
+  const icon = row.kind === "color_error" ? "🎨" : "🚗";
+  const lines = [
+    `📩 <b>${escapeHtml(KIND_LABEL[row.kind] || row.kind)}</b>${row.id != null ? ` #${row.id}` : ""}`,
+    DIV,
+  ];
   if (row.kind === "color_error") {
-    lines.push(`Машина: <code>${escapeHtml(row.vehicle_slug)}${row.color_id ? ` / ${escapeHtml(row.color_id)}` : ""}</code>`);
+    lines.push(`${icon} Машина: <code>${escapeHtml(row.vehicle_slug)}${row.color_id ? ` / ${escapeHtml(row.color_id)}` : ""}</code>`);
   } else {
     const p = row.payload || {};
-    lines.push(`Название: <b>${escapeHtml(p.name || "—")}</b>`);
-    if (p.category) lines.push(`Категория: ${escapeHtml(p.category)}`);
-    if (p.colors) lines.push(`Цвета: ${escapeHtml(p.colors)}`);
+    lines.push(`${icon} Название: <b>${escapeHtml(p.name || "—")}</b>`);
+    if (p.category) lines.push(`📁 Категория: ${escapeHtml(p.category)}`);
+    if (p.colors) lines.push(`🎨 Цвета: ${escapeHtml(p.colors)}`);
   }
-  if (row.message) lines.push(`Сообщение: ${escapeHtml(row.message)}`);
-  if (row.contact) lines.push(`Контакт: ${escapeHtml(row.contact)}`);
+  if (row.message) lines.push(`💬 ${escapeHtml(row.message)}`);
+  if (row.contact) lines.push(`👤 Контакт: ${escapeHtml(row.contact)}`);
   if (status && status !== "new") {
-    lines.push("", `<b>${STATUS_LABEL[status] || escapeHtml(status)}</b>${row.edited_by ? ` — ${escapeHtml(row.edited_by)}` : ""}`);
+    lines.push(DIV, `<b>${STATUS_LABEL[status] || escapeHtml(status)}</b>${row.edited_by ? ` — ${escapeHtml(row.edited_by)}` : ""}`);
   }
   return lines.join("\n");
 }
