@@ -6,6 +6,7 @@ import { useVehiclesContext } from "../context/VehiclesContext";
 import CategoryCard from "../components/CategoryCard";
 import VehicleCard from "../components/VehicleCard";
 import ReportButton from "../components/ReportButton";
+import PopularBlock from "../components/PopularBlock";
 
 const RECENT_DAYS = 30;
 const RECENT_LIMIT = 6;
@@ -69,6 +70,8 @@ export default function Home() {
           <CategoryCard key={cat.slug} category={cat} />
         ))}
       </div>
+
+      <PopularBlock />
 
       {recent.length > 0 && (
         <>

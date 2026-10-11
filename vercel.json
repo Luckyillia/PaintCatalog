@@ -9,6 +9,7 @@
       ]
     }
   ],
+  "crons": [{ "path": "/api/digest", "schedule": "0 7 * * *" }],
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     {

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Share2 } from "lucide-react";
+import { hexToRgb } from "../lib/color";
 
 function buildCss(vehicle) {
   const lines = [];
@@ -29,8 +30,21 @@ function buildJson(vehicle) {
   );
 }
 
+// Таблица для скриптов MTA: id цвета → { r, g, b } (у двухцветных — r1, g1, b1, r2, g2, b2).
+function buildLua(vehicle) {
+  const rows = vehicle.colors.map((c) => {
+    const nums = (c.hexes ?? [c.hex]).slice(0, 2).flatMap((h) => {
+      const { r, g, b } = hexToRgb(h);
+      return [r, g, b];
+    });
+    return `  ["${c.id}"] = { ${nums.join(", ")} }, -- ${c.name}`;
+  });
+  return `-- ${vehicle.name}\nlocal colors = {\n${rows.join("\n")}\n}`;
+}
+
 export default function PaletteExport({ vehicle }) {
   const [done, setDone] = useState("");
+  const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
   async function copy(kind, text) {
     try {
@@ -42,16 +56,35 @@ export default function PaletteExport({ vehicle }) {
     }
   }
 
+  async function share() {
+    try {
+      await navigator.share({ title: document.title, url: window.location.href });
+    } catch {
+      // пользователь закрыл меню «Поделиться» — это не ошибка
+    }
+  }
+
   const items = [
     { kind: "link", label: "Ссылка на этот цвет", get: () => window.location.href },
     { kind: "css", label: "Палитра как CSS", get: () => buildCss(vehicle) },
     { kind: "json", label: "Палитра как JSON", get: () => buildJson(vehicle) },
+    { kind: "lua", label: "Палитра как Lua", get: () => buildLua(vehicle) },
   ];
 
   return (
     <div>
       <h3 className="font-body text-xs uppercase tracking-[0.15em] text-mute mb-3">Поделиться и экспорт</h3>
       <div className="flex flex-wrap gap-2">
+        {canShare && (
+          <button
+            type="button"
+            onClick={share}
+            className="flex items-center gap-1.5 rounded-md border border-signal/40 bg-signal/10 px-3 py-2 font-body text-xs text-signal hover:bg-signal/20 transition-colors"
+          >
+            <Share2 size={13} />
+            Поделиться…
+          </button>
+        )}
         {items.map((it) => (
           <button
             key={it.kind}

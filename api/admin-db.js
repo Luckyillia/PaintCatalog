@@ -1,11 +1,14 @@
 import { requireAdmin } from "./_lib/auth.js";
 import { supabase, parseJson } from "./_lib/db.js";
 import { validateFields } from "./_lib/validate.js";
+import { notifyAudit } from "./_lib/notify.js";
 
 // Единственная точка записи в Supabase. Браузер присылает токен админа, а
 // запись выполняется здесь ключом service_role. RLS закрывает запись для
 // anon-ключа. edited_by ставится на сервере из токена. Каждая успешная
-// запись попадает в audit_log (если таблица создана — sql/audit-log.sql).
+// запись попадает в audit_log (если таблица создана — sql/audit-log.sql),
+// каждое удаление — ещё и в корзину (sql/trash.sql), а при
+// TELEGRAM_AUDIT_FEED=1 — короткой строкой в Telegram.
 
 const TABLES = {
   vehicles: { key: "slug", columns: ["slug", "category", "name", "tags", "image", "colors"] },
@@ -57,6 +60,16 @@ async function logAudit(entries) {
   });
 }
 
+// Копия удалённой записи уходит в корзину; сбой корзины не мешает удалению.
+async function moveToTrash(entries) {
+  if (entries.length === 0) return;
+  await supabase("trash", {
+    method: "POST",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify(entries),
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
@@ -77,6 +90,7 @@ export default async function handler(req, res) {
   const action = body.action;
   const keyIsClientSupplied = table.columns.includes(table.key);
   const audit = [];
+  const trash = [];
   let result;
 
   if (action === "insert" || action === "upsert") {
@@ -181,6 +195,9 @@ export default async function handler(req, res) {
           old_data: oldRow,
           new_data: null,
         });
+        if (oldRow && tableName !== "reports") {
+          trash.push({ table_name: tableName, row_key: String(keyValue), deleted_by: admin.name, data: oldRow });
+        }
       }
     }
   } else {
@@ -195,5 +212,11 @@ export default async function handler(req, res) {
   }
 
   await logAudit(audit);
+  await moveToTrash(trash);
+  try {
+    await notifyAudit(audit);
+  } catch (err) {
+    console.error("[admin-db] лента правок:", err?.message || err);
+  }
   res.status(200).json({ data: parseJson(result.text) });
 }

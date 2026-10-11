@@ -4,6 +4,8 @@ import { getCategory, getVehiclesByCategory, getVehiclesByTags, getUsedTagIds } 
 import { useVehiclesContext } from "../context/VehiclesContext";
 import { useTagsContext } from "../context/TagsContext";
 import { usePageTitle } from "../lib/usePageTitle";
+import { COLOR_FAMILIES } from "../lib/color";
+import { SORTS, filterByFamily, sortVehicles, vehicleFamilies } from "../lib/vehicleFilters";
 import Breadcrumbs from "../components/Breadcrumbs";
 import VehicleCard from "../components/VehicleCard";
 import TagFilterBar from "../components/TagFilterBar";
@@ -25,10 +27,13 @@ function CategoryView({ slug }) {
   const { tags } = useTagsContext();
   const [params, setParams] = useSearchParams();
 
-  // поиск и выбранные теги живут в ссылке: ?q=bmw&tags=brand-bmw,era-2010s
+  // поиск, теги, сортировка и цвет живут в ссылке:
+  // ?q=bmw&tags=brand-bmw,era-2010s&sort=new&family=green
   const query = params.get("q") ?? "";
   const tagsParam = params.get("tags") ?? "";
   const selectedTags = useMemo(() => tagsParam.split(",").filter(Boolean), [tagsParam]);
+  const sort = SORTS.some((s) => s.id === params.get("sort")) ? params.get("sort") : "name";
+  const family = COLOR_FAMILIES.some((f) => f.id === params.get("family")) ? params.get("family") : "";
 
   function updateParam(key, value) {
     const next = new URLSearchParams(params);
@@ -40,12 +45,23 @@ function CategoryView({ slug }) {
   const allVehicles = useMemo(() => getVehiclesByCategory(vehicles, slug), [vehicles, slug]);
   const availableTagIds = useMemo(() => getUsedTagIds(allVehicles, tags), [allVehicles, tags]);
 
+  // сколько машин категории имеют окраску каждого оттенка
+  const familyCounts = useMemo(() => {
+    const counts = new Map();
+    for (const v of allVehicles) {
+      for (const f of vehicleFamilies(v)) counts.set(f, (counts.get(f) || 0) + 1);
+    }
+    return counts;
+  }, [allVehicles]);
+  const familyOptions = COLOR_FAMILIES.filter((f) => familyCounts.get(f.id));
+
   const vehiclesFiltered = useMemo(() => {
     let list = getVehiclesByTags(allVehicles, selectedTags);
+    list = filterByFamily(list, family);
     const q = query.trim().toLowerCase();
     if (q) list = list.filter((v) => v.name.toLowerCase().includes(q));
-    return [...list].sort((a, b) => a.name.localeCompare(b.name, "ru"));
-  }, [allVehicles, selectedTags, query]);
+    return sortVehicles(list, sort);
+  }, [allVehicles, selectedTags, query, family, sort]);
 
   if (!category) {
     return (
@@ -78,6 +94,58 @@ function CategoryView({ slug }) {
           className="w-full bg-raised border border-hair rounded-md pl-9 pr-3 py-2.5 font-body text-sm text-ink placeholder:text-mute focus:outline-none focus:border-signal/50 transition-colors"
         />
       </div>
+
+      <div className="flex items-center gap-3 flex-wrap mb-5">
+        <label className="flex items-center gap-2 font-body text-xs text-mute">
+          Сортировка
+          <select
+            value={sort}
+            onChange={(e) => updateParam("sort", e.target.value === "name" ? "" : e.target.value)}
+            className="bg-raised border border-hair rounded-md px-3 py-2 font-body text-sm text-ink focus:outline-none focus:border-signal/50"
+          >
+            {SORTS.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {!loading && (
+          <span className="font-mono text-xs text-mute">
+            {vehiclesFiltered.length} из {allVehicles.length}
+          </span>
+        )}
+      </div>
+
+      {(familyOptions.length > 1 || family) && (
+        <div className="flex items-center gap-2 flex-wrap mb-5" role="group" aria-label="Фильтр по цвету окраски">
+          <button
+            type="button"
+            onClick={() => updateParam("family", "")}
+            aria-pressed={!family}
+            className={`rounded-full border px-3 py-1.5 font-body text-xs transition-colors ${
+              !family ? "border-signal/50 bg-signal/10 text-signal" : "border-hair bg-raised text-ink hover:border-mute"
+            }`}
+          >
+            Все цвета
+          </button>
+          {familyOptions.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => updateParam("family", family === f.id ? "" : f.id)}
+              aria-pressed={family === f.id}
+              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-body text-xs transition-colors ${
+                family === f.id ? "border-signal/50 bg-signal/10 text-signal" : "border-hair bg-raised text-ink hover:border-mute"
+              }`}
+            >
+              <span className="w-3 h-3 rounded-full border border-hair/80" style={{ background: f.sample }} />
+              {f.label}
+              <span className="font-mono text-[10px] text-mute">{familyCounts.get(f.id)}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <TagFilterBar
         availableTagIds={availableTagIds}

@@ -12,6 +12,7 @@ import Favorites from "./pages/Favorites";
 import ColorSearch from "./pages/ColorSearch";
 import Compare from "./pages/Compare";
 import NotFound from "./pages/NotFound";
+import ScrollTopButton from "./components/ScrollTopButton";
 
 // Админка грузится отдельным чанком — обычные посетители её не скачивают.
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
@@ -22,6 +23,8 @@ const TagsManager = lazy(() => import("./pages/admin/TagsManager"));
 const CreditsConstructorAdmin = lazy(() => import("./pages/admin/CreditsConstructor"));
 const ReportsQueue = lazy(() => import("./pages/admin/ReportsQueue"));
 const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
+const VehicleImport = lazy(() => import("./pages/admin/VehicleImport"));
+const Trash = lazy(() => import("./pages/admin/Trash"));
 
 export default function App() {
   return (
@@ -36,6 +39,8 @@ export default function App() {
             <Route path="credits" element={<CreditsConstructorAdmin />} />
             <Route path="reports" element={<ReportsQueue />} />
             <Route path="audit" element={<AuditLog />} />
+            <Route path="vehicle-import" element={<VehicleImport />} />
+            <Route path="trash" element={<Trash />} />
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Route>
 
@@ -56,6 +61,7 @@ export default function App() {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <CompareBar />
+                <ScrollTopButton />
               </div>
             }
           />

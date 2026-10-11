@@ -1,8 +1,11 @@
 import { useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeftRight, Copy, Check, X } from "lucide-react";
 import Breadcrumbs from "../components/Breadcrumbs";
 import CopyHex from "../components/CopyHex";
+import ColorSets from "../components/ColorSets";
+import { useColorFormat } from "../lib/useColorFormat";
+import { COLOR_FORMATS } from "../lib/colorFormats";
 import PhotoSlot from "../components/PhotoSlot";
 import { VehicleGridSkeleton } from "../components/Skeleton";
 import { useCompare } from "../context/CompareContext";
@@ -12,7 +15,7 @@ import { colorDistance, deltaVerdict, swatchBackground } from "../lib/color";
 import { decodeCompare, encodeCompare, COMPARE_LIMIT } from "../lib/compare";
 import { usePageTitle } from "../lib/usePageTitle";
 
-const FORMATS = ["HEX", "RGB", "HSL"];
+const FORMATS = COLOR_FORMATS;
 
 function label(e) {
   return `${e.vehicle.name}, ${e.color.name}`;
@@ -26,7 +29,8 @@ export default function Compare() {
   const [params] = useSearchParams();
   const { items, remove, clear, replaceAll } = useCompare();
   const { vehicles, loading, error } = useVehiclesContext();
-  const [fmt, setFmt] = useState("HEX");
+  const [fmt, setFmt] = useColorFormat();
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
 
   const fromLink = params.has("c");
@@ -137,7 +141,7 @@ export default function Compare() {
       ) : (
         <>
           <div className="inline-flex rounded-md border border-hair overflow-hidden mb-4">
-            {FORMATS.map((f) => (
+            {FORMATS.map(({ id: f, label }) => (
               <button
                 key={f}
                 type="button"
@@ -147,7 +151,7 @@ export default function Compare() {
                   fmt === f ? "bg-signal/15 text-signal" : "bg-raised text-mute hover:text-ink"
                 }`}
               >
-                {f}
+                {label}
               </button>
             ))}
           </div>
@@ -247,6 +251,17 @@ export default function Compare() {
             <p className="font-body text-sm text-mute">Добавь ещё хотя бы один цвет, чтобы увидеть разницу между ними.</p>
           )}
         </>
+      )}
+
+      {!loading && (
+        <ColorSets
+          refs={entries.map((e) => e.ref)}
+          vehicles={vehicles}
+          onLoad={(next) => {
+            replaceAll(next);
+            if (fromLink) navigate("/compare", { replace: true });
+          }}
+        />
       )}
     </div>
   );

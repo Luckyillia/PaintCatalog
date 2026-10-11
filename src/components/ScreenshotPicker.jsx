@@ -14,6 +14,7 @@ export default function ScreenshotPicker({ onPick }) {
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const supportsEyeDropper = typeof window !== "undefined" && "EyeDropper" in window;
+  const coarse = typeof window !== "undefined" && Boolean(window.matchMedia?.("(pointer: coarse)").matches);
 
   function loadFile(file) {
     if (!file) return;
@@ -123,7 +124,7 @@ export default function ScreenshotPicker({ onPick }) {
           }`}
         >
           <p className="font-body text-sm text-ink">
-            Перетащи скриншот сюда или вставь из буфера (Ctrl+V)
+            {coarse ? "Выбери скриншот из галереи" : "Перетащи скриншот сюда или вставь из буфера (Ctrl+V)"}
           </p>
           <div className="flex items-center justify-center gap-2 flex-wrap mt-3">
             <label className="cursor-pointer rounded-md border border-hair bg-raised2 px-3 py-2 font-body text-xs text-ink hover:border-signal/50 transition-colors focus-within:outline-2 focus-within:outline-signal">
@@ -177,7 +178,9 @@ export default function ScreenshotPicker({ onPick }) {
                   <span>— нажми, чтобы выбрать</span>
                 </>
               ) : (
-                "Наведи курсор на нужное место и нажми — цвет усредняется по небольшой области."
+                coarse
+                  ? "Коснись нужного места на скриншоте — цвет усредняется по небольшой области."
+                  : "Наведи курсор на нужное место и нажми — цвет усредняется по небольшой области."
               )}
             </p>
           </div>

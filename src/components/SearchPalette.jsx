@@ -5,16 +5,15 @@ import { Search } from "lucide-react";
 import { useVehiclesContext } from "../context/VehiclesContext";
 import { useTagsContext } from "../context/TagsContext";
 import { getCategory } from "../data/categories";
+import { norm, searchCatalog } from "../lib/search";
 
 // Глобальный поиск (Ctrl/⌘+K): по названию, slug, тегу, названию цвета и hex.
+// Прощает неверную раскладку, русские названия марок («бмв») и опечатки.
 // Монтируется только когда открыт (см. Header), поэтому состояние сбрасывается само.
 //
 // Окно рисуется через портал в document.body. Header имеет backdrop-blur, а
 // такой родитель становится «рамкой» для position: fixed — без портала
 // затемнение растягивалось только на высоту шапки (тёмная полоска сверху).
-//
-// На телефоне окно поднято выше, а список короче: иначе экранная клавиатура
-// закрывает результаты.
 export default function SearchPalette({ onClose }) {
   const navigate = useNavigate();
   const { vehicles } = useVehiclesContext();
@@ -49,31 +48,11 @@ export default function SearchPalette({ onClose }) {
     return () => window.removeEventListener("keydown", onKey, true);
   }, [onClose]);
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase().replace(/^#/, "");
-    if (!q) return [];
-    const tagLabel = new Map(tags.map((t) => [t.id, t.label.toLowerCase()]));
-    const out = [];
-    for (const v of vehicles) {
-      const cat = getCategory(v.category)?.name || "";
-      if (v.name.toLowerCase().includes(q) || v.slug.includes(q)) {
-        out.push({ v, score: 0, hint: cat });
-        continue;
-      }
-      const tag = (v.tags || []).find((id) => tagLabel.get(id)?.includes(q));
-      if (tag) {
-        out.push({ v, score: 1, hint: `тег: ${tagLabel.get(tag)}` });
-        continue;
-      }
-      const color = (v.colors || []).find(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          (c.hexes ?? [c.hex]).some((h) => h?.toLowerCase().replace("#", "").includes(q))
-      );
-      if (color) out.push({ v, score: 2, hint: `цвет: ${color.name}`, colorId: color.id });
-    }
-    return out.sort((a, b) => a.score - b.score).slice(0, 8);
-  }, [query, vehicles, tags]);
+  const found = useMemo(
+    () => searchCatalog(vehicles, tags, query, { categoryName: (slug) => getCategory(slug)?.name || "" }),
+    [query, vehicles, tags]
+  );
+  const results = found.results;
 
   function go(item) {
     if (!item) return;
@@ -93,9 +72,16 @@ export default function SearchPalette({ onClose }) {
     } else if (e.key === "Enter") go(results[active]);
   }
 
+  const typed = norm(query).replace(/^#/, "");
+  const note = found.fuzzy
+    ? "Точных совпадений нет. Возможно, вы искали:"
+    : results.length > 0 && found.used && found.used !== typed
+    ? `Показано для «${found.used}»`
+    : "";
+
   return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-[5vh] sm:pt-[12vh] px-3 sm:px-4"
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-start justify-center pt-[12vh] px-4"
       onMouseDown={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
@@ -119,29 +105,29 @@ export default function SearchPalette({ onClose }) {
             className="w-full bg-transparent pl-11 pr-4 py-4 font-body text-sm text-ink placeholder:text-mute focus:outline-none"
           />
         </div>
-        <div className="max-h-[38vh] sm:max-h-80 overflow-y-auto chip-scroll">
+        <div className="max-h-80 overflow-y-auto chip-scroll">
           {!query.trim() && (
-            <p className="font-body text-xs text-mute px-4 py-4">Начни вводить — например «bmw», «чёрный» или «FF0000».</p>
+            <p className="font-body text-xs text-mute px-4 py-4">Начни вводить — например «bmw», «бмв», «чёрный» или «FF0000».</p>
           )}
           {query.trim() && results.length === 0 && (
             <p className="font-body text-xs text-mute px-4 py-4">Ничего не найдено.</p>
           )}
+          {note && <p className="font-body text-[11px] text-mute px-4 pt-3 pb-1">{note}</p>}
           {results.map((item, i) => (
             <button
               key={item.v.slug}
               onMouseEnter={() => setActive(i)}
               onClick={() => go(item)}
-              className={`w-full flex items-center justify-between gap-3 px-4 py-3.5 sm:py-3 text-left transition-colors ${
+              className={`w-full flex items-center justify-between gap-3 px-4 py-3 text-left transition-colors ${
                 i === active ? "bg-raised2" : ""
               }`}
             >
               <span className="font-display text-base tracking-wide text-ink truncate">{item.v.name}</span>
-              <span className="font-mono text-[11px] text-mute shrink-0 max-w-[45%] truncate">{item.hint}</span>
+              <span className="font-mono text-[11px] text-mute shrink-0">{item.hint}</span>
             </button>
           ))}
         </div>
-        {/* подсказки по клавишам нужны только на компьютере */}
-        <div className="hidden sm:flex border-t border-hair px-4 py-2 font-mono text-[10px] text-mute gap-4">
+        <div className="border-t border-hair px-4 py-2 font-mono text-[10px] text-mute flex gap-4">
           <span>↑↓ выбор</span>
           <span>Enter открыть</span>
           <span>Esc закрыть</span>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Search, Trash2, ArrowLeft, RefreshCw } from "lucide-react";
+import { Search, Trash2, ArrowLeft, RefreshCw, Copy } from "lucide-react";
 import { adminFetchVehicles, adminDeleteVehicle, clearVehiclesCache } from "../../data/vehicles";
 import VehicleForm from "../../components/admin/VehicleForm";
 import { RowsSkeleton } from "../../components/Skeleton";
@@ -12,6 +12,7 @@ export default function VehicleEditor() {
   const [selectedSlug, setSelectedSlug] = useState(
     () => new URLSearchParams(window.location.search).get("slug")
   );
+  const [copyOf, setCopyOf] = useState(null); // машина, с которой делаем копию
   const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -47,7 +48,12 @@ export default function VehicleEditor() {
   });
 
   async function handleDelete(vehicle) {
-    if (!confirm(`Удалить машину «${vehicle.name}»? Это необратимо.`)) return;
+    if (
+      !confirm(
+        `Удалить машину «${vehicle.name}»? Она попадёт в «Корзину» (хранится 30 дней), оттуда её можно восстановить.`
+      )
+    )
+      return;
     setDeleting(true);
     try {
       await adminDeleteVehicle(vehicle.slug);
@@ -59,6 +65,29 @@ export default function VehicleEditor() {
     } finally {
       setDeleting(false);
     }
+  }
+
+  function handleCopySaved(vehicle) {
+    // после сохранения копии переходим к её редактированию
+    setCopyOf(null);
+    setSelectedSlug(vehicle.slug);
+    reload(true);
+  }
+
+  if (copyOf) {
+    return (
+      <div>
+        <button
+          onClick={() => setCopyOf(null)}
+          className="flex items-center gap-1.5 font-body text-sm text-mute hover:text-signal transition-colors mb-4"
+        >
+          <ArrowLeft size={15} />
+          Отменить копирование
+        </button>
+        <h1 className="font-display text-2xl tracking-wide text-ink mb-6">Копия: {copyOf.name}</h1>
+        <VehicleForm key={`copy-${copyOf.slug}`} initial={copyOf} asCopy onSaved={handleCopySaved} />
+      </div>
+    );
   }
 
   if (selected) {
@@ -74,14 +103,23 @@ export default function VehicleEditor() {
 
         <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
           <h1 className="font-display text-2xl tracking-wide text-ink">{selected.name}</h1>
-          <button
-            onClick={() => handleDelete(selected)}
-            disabled={deleting}
-            className="flex items-center gap-1.5 rounded-md border border-hair bg-raised text-amber font-body text-xs px-3 py-2 hover:border-amber/50 transition-colors disabled:opacity-50"
-          >
-            <Trash2 size={13} />
-            Удалить машину
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCopyOf(selected)}
+              className="flex items-center gap-1.5 rounded-md border border-hair bg-raised text-ink font-body text-xs px-3 py-2 hover:border-signal/50 hover:text-signal transition-colors"
+            >
+              <Copy size={13} />
+              Копировать
+            </button>
+            <button
+              onClick={() => handleDelete(selected)}
+              disabled={deleting}
+              className="flex items-center gap-1.5 rounded-md border border-hair bg-raised text-amber font-body text-xs px-3 py-2 hover:border-amber/50 transition-colors disabled:opacity-50"
+            >
+              <Trash2 size={13} />
+              Удалить машину
+            </button>
+          </div>
         </div>
 
         <VehicleForm key={selected.slug} initial={selected} onSaved={reload} />

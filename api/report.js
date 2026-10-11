@@ -1,11 +1,14 @@
 import { supabase, parseJson } from "./_lib/db.js";
 import { validateReport, hashIp, exceedsLimits, GLOBAL_PER_HOUR } from "./_lib/reports.js";
+import { notifyReport } from "./_lib/notify.js";
+import { siteUrl } from "./_lib/telegram.js";
 
 // Публичная форма: «Ошибка в цвете» и «Предложить машину».
 // Пишет в таблицу reports ключом service_role (anon-ключу запись закрыта —
 // см. sql/reports.sql). Защита от спама: ловушка-поле, минимальное время
 // заполнения, проверка, что машина/цвет существуют, лимиты по хэшу IP
 // (считаются по самой таблице, поэтому работают между инстансами serverless).
+// После записи уведомляет в Telegram / webhook (кнопки «Принять / Отклонить»).
 
 function clientIp(req) {
   const fwd = String(req.headers?.["x-forwarded-for"] || "").split(",")[0].trim();
@@ -84,13 +87,21 @@ export default async function handler(req, res) {
 
   const saved = await supabase("reports", {
     method: "POST",
-    headers: { Prefer: "return=minimal" },
+    headers: { Prefer: "return=representation" },
     body: JSON.stringify({ ...row, ip_hash: ipHash }),
   });
   if (saved.status >= 400) {
     console.error("[report] запись в reports не удалась:", saved.status, saved.text.slice(0, 300));
     res.status(502).json({ error: "Не удалось отправить, попробуй чуть позже." });
     return;
+  }
+
+  // id нужен кнопкам в Telegram; ip_hash наружу не передаём
+  const created = parseJson(saved.text)?.[0];
+  try {
+    await notifyReport({ ...row, id: created?.id, status: "new" }, siteUrl(req));
+  } catch (err) {
+    console.error("[report] уведомление не ушло:", err?.message || err);
   }
 
   res.status(200).json({ ok: true });

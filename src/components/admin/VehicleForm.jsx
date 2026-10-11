@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Plus, Check, Loader2 } from "lucide-react";
+import { Plus, Check, Loader2, GripVertical, ChevronUp, ChevronDown } from "lucide-react";
 import { categories } from "../../data/categories";
 import { useTagsContext } from "../../context/TagsContext";
-import { adminSaveVehicle, clearVehiclesCache } from "../../data/vehicles";
+import { adminSaveVehicle, adminFetchVehicles, clearVehiclesCache } from "../../data/vehicles";
 import { uploadToCloudinary } from "../../lib/cloudinary";
 import { sanitizeSlug, nextUid, isValidHex } from "../../lib/textUtils";
 import ImageUploadField from "./ImageUploadField";
@@ -58,13 +58,19 @@ function validateColors(colors) {
 }
 
 // initial — существующая машина (режим редактирования) или null (создание).
-export default function VehicleForm({ initial, onSaved }) {
-  const isEdit = Boolean(initial);
+// asCopy — initial используется как заготовка для НОВОЙ машины («Копировать»):
+// имя получает пометку «(копия)», slug придумывается заново, всё остальное
+// (цвета, теги, ссылки на фото) переносится.
+export default function VehicleForm({ initial, asCopy = false, onSaved }) {
+  const isEdit = Boolean(initial) && !asCopy;
   const { tags: allTags, tagGroups, loading: tagsLoading } = useTagsContext();
 
+  const initialName = asCopy ? `${initial.name} (копия)` : initial?.name || "";
+  const initialSlug = asCopy ? sanitizeSlug(initialName, "") : initial?.slug || "";
+
   const [category, setCategory] = useState(initial?.category || categories[0]?.slug || "");
-  const [name, setName] = useState(initial?.name || "");
-  const [slug, setSlug] = useState(initial?.slug || "");
+  const [name, setName] = useState(initialName);
+  const [slug, setSlug] = useState(initialSlug);
   const [slugManual, setSlugManual] = useState(isEdit);
   const [mainImage, setMainImage] = useState({ url: initial?.image || "", blob: null });
   const [colors, setColors] = useState(
@@ -74,6 +80,11 @@ export default function VehicleForm({ initial, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
   const [statusError, setStatusError] = useState(false);
+
+  // перетаскивание цветов: «armed» — строка, за ручку которой взялись
+  const [armedUid, setArmedUid] = useState(null);
+  const [dragUid, setDragUid] = useState(null);
+  const [overUid, setOverUid] = useState(null);
 
   function fail(message) {
     setStatusError(true);
@@ -112,6 +123,36 @@ export default function VehicleForm({ initial, onSaved }) {
     setColors((prev) => [...prev, emptyColorRow()]);
   }
 
+  // переносит цвет fromUid на место цвета toUid
+  function moveColor(fromUid, toUid) {
+    setColors((prev) => {
+      const from = prev.findIndex((c) => c.uid === fromUid);
+      const to = prev.findIndex((c) => c.uid === toUid);
+      if (from < 0 || to < 0 || from === to) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  }
+
+  function shiftColor(uid, dir) {
+    setColors((prev) => {
+      const i = prev.findIndex((c) => c.uid === uid);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+  }
+
+  function resetDrag() {
+    setArmedUid(null);
+    setDragUid(null);
+    setOverUid(null);
+  }
+
   async function handleSave() {
     const cleanSlug = sanitizeSlug(slug, "");
     if (!cleanSlug) return fail("Укажи slug машины");
@@ -124,9 +165,18 @@ export default function VehicleForm({ initial, onSaved }) {
 
     setSaving(true);
     setStatusError(false);
-    setStatus("Сохраняю...");
 
     try {
+      // Новая машина не должна молча затереть существующую с тем же slug.
+      if (!isEdit) {
+        setStatus("Проверяю slug...");
+        const existing = await adminFetchVehicles(true);
+        if (existing.some((v) => v.slug === cleanSlug)) {
+          return fail(`Машина со slug «${cleanSlug}» уже есть — выбери другой slug или отредактируй её в «Редактировать машины».`);
+        }
+      }
+
+      setStatus("Сохраняю...");
       let mainUrl = mainImage.url || "";
       if (mainImage.blob) {
         setStatus("Загружаю обложку в Cloudinary...");
@@ -178,6 +228,13 @@ export default function VehicleForm({ initial, onSaved }) {
 
   return (
     <div className="flex flex-col gap-6">
+      {asCopy && (
+        <p className="font-body text-xs text-amber border border-amber/40 rounded-md px-3 py-2">
+          Это копия машины «{initial.name}»: цвета, теги и фото перенесены. Поменяй название и slug, при
+          необходимости поправь цвета и нажми «Опубликовать».
+        </p>
+      )}
+
       <div className="border border-hair rounded-lg bg-panel p-5">
         <h2 className="font-display text-lg tracking-wide text-ink mb-4">Основное</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -225,15 +282,71 @@ export default function VehicleForm({ initial, onSaved }) {
       </div>
 
       <div className="border border-hair rounded-lg bg-panel p-5">
-        <h2 className="font-display text-lg tracking-wide text-ink mb-4">Цвета окраски</h2>
+        <h2 className="font-display text-lg tracking-wide text-ink mb-1">Цвета окраски</h2>
+        <p className="font-body text-xs text-mute mb-4">
+          Порядок меняется перетаскиванием за ручку слева или кнопками ↑ ↓.
+        </p>
         <div className="flex flex-col gap-3 mb-3">
-          {colors.map((c) => (
-            <ColorRow
+          {colors.map((c, i) => (
+            <div
               key={c.uid}
-              color={c}
-              onChange={(next) => updateColor(c.uid, next)}
-              onRemove={() => removeColor(c.uid)}
-            />
+              draggable={armedUid === c.uid}
+              onDragStart={(e) => {
+                setDragUid(c.uid);
+                e.dataTransfer.effectAllowed = "move";
+                e.dataTransfer.setData("text/plain", c.uid);
+              }}
+              onDragOver={(e) => {
+                if (!dragUid) return;
+                e.preventDefault();
+                setOverUid(c.uid);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                if (dragUid) moveColor(dragUid, c.uid);
+                resetDrag();
+              }}
+              onDragEnd={resetDrag}
+              className={`flex items-stretch gap-2 rounded-md transition-opacity ${
+                dragUid === c.uid ? "opacity-40" : ""
+              } ${overUid === c.uid && dragUid !== c.uid ? "ring-1 ring-signal/60" : ""}`}
+            >
+              <div className="flex flex-col items-center justify-center gap-0.5 shrink-0 text-mute">
+                <button
+                  type="button"
+                  onClick={() => shiftColor(c.uid, -1)}
+                  disabled={i === 0}
+                  aria-label="Выше"
+                  className="hover:text-signal disabled:opacity-25 disabled:cursor-not-allowed"
+                >
+                  <ChevronUp size={14} />
+                </button>
+                <span
+                  onPointerDown={() => setArmedUid(c.uid)}
+                  onPointerUp={() => setArmedUid(null)}
+                  title="Перетащить"
+                  className="cursor-grab active:cursor-grabbing hover:text-signal touch-none"
+                >
+                  <GripVertical size={16} />
+                </span>
+                <button
+                  type="button"
+                  onClick={() => shiftColor(c.uid, 1)}
+                  disabled={i === colors.length - 1}
+                  aria-label="Ниже"
+                  className="hover:text-signal disabled:opacity-25 disabled:cursor-not-allowed"
+                >
+                  <ChevronDown size={14} />
+                </button>
+              </div>
+              <div className="flex-1 min-w-0">
+                <ColorRow
+                  color={c}
+                  onChange={(next) => updateColor(c.uid, next)}
+                  onRemove={() => removeColor(c.uid)}
+                />
+              </div>
+            </div>
           ))}
           {colors.length === 0 && (
             <p className="font-body text-xs text-amber">

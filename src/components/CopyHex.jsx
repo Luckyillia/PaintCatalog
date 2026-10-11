@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
-import { track } from "@vercel/analytics";
-import { formatColor } from "../lib/color";
+import { track as analyticsTrack } from "@vercel/analytics";
+import { COLOR_FORMATS, formatColorExt, formatLuaColors } from "../lib/colorFormats";
+import { useColorFormat } from "../lib/useColorFormat";
+import { trackHit } from "../lib/popular";
 
-const FORMATS = ["HEX", "RGB", "HSL"];
-
-function HexRow({ hex, fmt }) {
+function CopyRow({ text, fmt, hex, trackInfo }) {
   const [copied, setCopied] = useState(false);
-  const text = formatColor(hex, fmt);
 
   async function handleCopy() {
     try {
@@ -18,7 +17,13 @@ function HexRow({ hex, fmt }) {
       return; // буфер обмена недоступен
     }
     try {
-      track("copy_color", { format: fmt, hex });
+      navigator.vibrate?.(15); // лёгкий отклик на телефоне, где поддерживается
+    } catch {
+      // вибрация не критична
+    }
+    try {
+      analyticsTrack("copy_color", { format: fmt, hex });
+      if (trackInfo) trackHit({ kind: "color", slug: trackInfo.slug, colorId: trackInfo.colorId });
     } catch {
       // аналитика не критична
     }
@@ -27,11 +32,13 @@ function HexRow({ hex, fmt }) {
   return (
     <button
       onClick={handleCopy}
-      aria-label={`Копировать ${text}`}
-      className="group flex items-center justify-between gap-3 w-full rounded-md border border-hair bg-raised px-4 py-3 hover:border-signal/50 transition-colors"
+      className="group flex items-center justify-between gap-4 w-full rounded-md border border-hair bg-raised px-4 py-3 hover:border-signal/50 transition-colors text-left"
     >
-      {/* на телефоне шрифт чуть меньше: «hsl(120, 100%, 50%)» иначе не помещается */}
-      <span className="min-w-0 break-all text-left font-mono text-base sm:text-lg tracking-wide sm:tracking-wider text-ink">
+      <span
+        className={`font-mono text-ink min-w-0 ${
+          fmt === "LUA" ? "text-sm break-all" : "text-lg tracking-wider"
+        }`}
+      >
         {text}
       </span>
       <span className="flex items-center gap-1.5 font-body text-xs text-mute group-hover:text-signal transition-colors shrink-0">
@@ -43,7 +50,7 @@ function HexRow({ hex, fmt }) {
         ) : (
           <>
             <Copy size={14} />
-            <span className="hidden sm:inline">Копировать</span>
+            Копировать
           </>
         )}
       </span>
@@ -51,34 +58,42 @@ function HexRow({ hex, fmt }) {
   );
 }
 
-// format / onFormatChange — необязательно: если не переданы, формат хранится внутри.
-export default function CopyHex({ hexes, format, onFormatChange, showTabs = true }) {
-  const [internal, setInternal] = useState("HEX");
+// format / onFormatChange — необязательно: если не переданы, формат хранится
+// внутри (и запоминается в браузере). track — { slug, colorId }: копирование
+// попадёт в счётчик популярности.
+export default function CopyHex({ hexes, format, onFormatChange, showTabs = true, track }) {
+  const [internal, setInternal] = useColorFormat();
   const fmt = format ?? internal;
   const setFmt = onFormatChange ?? setInternal;
   const list = Array.isArray(hexes) ? hexes : [hexes];
 
+  // У двухцветной окраски в формате Lua обе половины идут одной строкой.
+  const rows =
+    fmt === "LUA" && list.length > 1
+      ? [{ key: "lua", text: formatLuaColors(list), hex: list[0] }]
+      : list.map((h) => ({ key: h, text: formatColorExt(h, fmt), hex: h }));
+
   return (
     <div className="flex flex-col gap-2">
       {showTabs && (
-        <div className="inline-flex self-start rounded-md border border-hair overflow-hidden">
-          {FORMATS.map((f) => (
+        <div className="inline-flex self-start max-w-full overflow-x-auto chip-scroll rounded-md border border-hair">
+          {COLOR_FORMATS.map((f) => (
             <button
-              key={f}
+              key={f.id}
               type="button"
-              onClick={() => setFmt(f)}
-              aria-pressed={fmt === f}
-              className={`font-mono text-[11px] px-3.5 py-2 sm:px-3 sm:py-1.5 transition-colors ${
-                fmt === f ? "bg-signal/15 text-signal" : "bg-raised text-mute hover:text-ink"
+              onClick={() => setFmt(f.id)}
+              aria-pressed={fmt === f.id}
+              className={`font-mono text-[11px] px-3 py-1.5 whitespace-nowrap transition-colors ${
+                fmt === f.id ? "bg-signal/15 text-signal" : "bg-raised text-mute hover:text-ink"
               }`}
             >
-              {f}
+              {f.label}
             </button>
           ))}
         </div>
       )}
-      {list.map((hex) => (
-        <HexRow key={hex} hex={hex} fmt={fmt} />
+      {rows.map((r) => (
+        <CopyRow key={r.key} text={r.text} fmt={fmt} hex={r.hex} trackInfo={track} />
       ))}
     </div>
   );
