@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { ImageOff, Crop, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ImageOff, Crop, Trash2, ImagePlus } from "lucide-react";
 import ImageCropperModal from "./ImageCropperModal";
 
 // value: { url: string, blob: Blob|null }
@@ -10,14 +10,58 @@ import ImageCropperModal from "./ImageCropperModal";
 //          blob пустой, а url есть — значит фото не менялось.
 export default function ImageUploadField({ label, value, onChange, ratio = "4:3" }) {
   const fileInputRef = useRef(null);
-  const [rawFile, setRawFile] = useState(null);
-  const [hasFile, setHasFile] = useState(false);
+  const [rawFile, setRawFile] = useState(null); // файл, который сейчас в окне обрезки
+  const [lastFile, setLastFile] = useState(null); // последний выбранный (для «Обрезать» повторно)
+  const [dragOver, setDragOver] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleFileChange(e) {
-    const file = e.target.files[0];
+  // Если уронить файл мимо зоны, браузер открыл бы картинку в этой же
+  // вкладке и форма потерялась бы. Гасим это поведение для файлов.
+  useEffect(() => {
+    function block(e) {
+      if (e.dataTransfer?.types?.includes("Files")) e.preventDefault();
+    }
+    window.addEventListener("dragover", block);
+    window.addEventListener("drop", block);
+    return () => {
+      window.removeEventListener("dragover", block);
+      window.removeEventListener("drop", block);
+    };
+  }, []);
+
+  function acceptFile(file) {
     if (!file) return;
-    setHasFile(true);
+    if (!file.type.startsWith("image/")) {
+      setError("Нужен файл-изображение (JPG, PNG, WebP).");
+      return;
+    }
+    setError("");
+    setLastFile(file);
     setRawFile(file);
+  }
+
+  function handleInputChange(e) {
+    acceptFile(e.target.files?.[0]);
+    e.target.value = ""; // чтобы тот же файл можно было выбрать повторно
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    setDragOver(false);
+    acceptFile(e.dataTransfer.files?.[0]);
+  }
+
+  function handleDragOver(e) {
+    if (!e.dataTransfer?.types?.includes("Files")) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    setDragOver(true);
+  }
+
+  function handleDragLeave(e) {
+    // игнорируем «уход» на дочерние элементы зоны
+    if (e.currentTarget.contains(e.relatedTarget)) return;
+    setDragOver(false);
   }
 
   function handleConfirm(blob, url) {
@@ -25,23 +69,17 @@ export default function ImageUploadField({ label, value, onChange, ratio = "4:3"
     setRawFile(null);
   }
 
-  function handleCancelCrop() {
-    setRawFile(null);
-  }
-
   function handleRemove() {
     onChange({ blob: null, url: "" });
     setRawFile(null);
-    setHasFile(false);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  }
-
-  function handleRecrop() {
-    const file = fileInputRef.current?.files?.[0];
-    if (file) setRawFile(file);
+    setLastFile(null);
+    setError("");
   }
 
   const hasImage = Boolean(value?.url);
+
+  const smallBtn =
+    "shrink-0 flex items-center gap-1 rounded-md border font-body text-xs px-3 py-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
 
   return (
     <div>
@@ -50,26 +88,55 @@ export default function ImageUploadField({ label, value, onChange, ratio = "4:3"
           {label}
         </label>
       )}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="w-20 h-14 rounded-md border border-hair bg-raised flex items-center justify-center overflow-hidden shrink-0">
+
+      <div
+        onDragEnter={handleDragOver}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`flex items-center gap-3 flex-wrap rounded-md border border-dashed p-3 transition-colors ${
+          dragOver ? "border-signal bg-signal/10" : "border-hair bg-raised"
+        }`}
+      >
+        <div className="w-20 h-14 rounded-md border border-hair bg-raised2 flex items-center justify-center overflow-hidden shrink-0">
           {hasImage ? (
             <img src={value.url} alt="" className="w-full h-full object-cover" />
           ) : (
             <ImageOff size={18} className="text-mute" strokeWidth={1.5} />
           )}
         </div>
+
+        <div className="flex-1 min-w-[160px]">
+          <p className="font-body text-sm text-ink">
+            {dragOver ? "Отпусти, чтобы загрузить" : "Перетащи фото сюда"}
+          </p>
+          <p className="font-body text-[11px] text-mute mt-0.5">
+            или выбери файл с устройства — потом можно обрезать
+          </p>
+        </div>
+
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
-          onChange={handleFileChange}
-          className="flex-1 min-w-[160px] font-body text-xs text-mute"
+          onChange={handleInputChange}
+          className="sr-only"
+          tabIndex={-1}
         />
+
         <button
           type="button"
-          onClick={handleRecrop}
-          disabled={!hasFile}
-          className="shrink-0 flex items-center gap-1 rounded-md border border-hair bg-raised2 text-ink font-body text-xs px-3 py-2 hover:border-signal/50 transition-colors disabled:opacity-40"
+          onClick={() => fileInputRef.current?.click()}
+          className={`${smallBtn} border-signal/40 bg-signal/10 text-signal hover:bg-signal/20`}
+        >
+          <ImagePlus size={13} />
+          {hasImage ? "Заменить" : "Выбрать фото"}
+        </button>
+        <button
+          type="button"
+          onClick={() => lastFile && setRawFile(lastFile)}
+          disabled={!lastFile}
+          className={`${smallBtn} border-hair bg-raised2 text-ink hover:border-signal/50`}
         >
           <Crop size={13} />
           Обрезать
@@ -78,19 +145,21 @@ export default function ImageUploadField({ label, value, onChange, ratio = "4:3"
           type="button"
           onClick={handleRemove}
           disabled={!hasImage}
-          className="shrink-0 flex items-center gap-1 rounded-md border border-hair bg-raised text-mute font-body text-xs px-3 py-2 hover:border-amber/50 hover:text-amber transition-colors disabled:opacity-40"
+          className={`${smallBtn} border-hair bg-raised text-mute hover:border-amber/50 hover:text-amber`}
         >
           <Trash2 size={13} />
           Убрать
         </button>
       </div>
 
+      {error && <p className="font-body text-xs text-amber mt-2">{error}</p>}
+
       {rawFile && (
         <ImageCropperModal
           file={rawFile}
           defaultRatio={ratio}
           onConfirm={handleConfirm}
-          onCancel={handleCancelCrop}
+          onCancel={() => setRawFile(null)}
         />
       )}
     </div>
